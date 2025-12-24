@@ -35,3 +35,9 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 # WorkSafe04
+
+## Cosa inserire nel nostro .env (copiate e incollate da NEXT_PUBLIC... fino a postgres")
+NEXT_PUBLIC_API_URL=http://localhost:3000/api
+
+DATABASE_URL="postgresql://postgres.rjovbobmdsdrpqaxvyvd:worksafec04@aws-1-eu-west-1.pooler.supabase.com:5432/postgres"
+
