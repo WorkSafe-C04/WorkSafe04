@@ -1,0 +1,159 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Ruolo {
+  DIPENDENTE
+  DATORE_DI_LAVORO
+  RESPONSABILE_SICUREZZA
+  MANUTENTORE
+}
+
+enum StatoSegnalazione {
+  APERTA
+  IN_CORSO
+  RISOLTA
+  CHIUSA
+}
+
+enum StatoRisorsa {
+  DISPONIBILE
+  IN_MANUTENZIONE
+  GUASTA
+  DISMESSA
+}
+
+
+model Utente {
+  id              Int      @id @default(autoincrement())
+  matricola       String   @unique
+  nome            String
+  cognome         String
+  dataNascita     DateTime? 
+  email           String   @unique
+  password        String   
+  ruolo           Ruolo
+  dataAssunzione  DateTime?
+  
+  segnalazioni    Segnalazione[]
+  gestioneRisorse Gestionerisorsa[]
+  formazioni      GestioneFormazione[]
+}
+
+model Risorsa {
+  id              Int      @id @default(autoincrement())
+  nome            String
+  tipo            String
+  descrizione     String?  @db.Text
+  stato           StatoRisorsa @default(DISPONIBILE)
+  
+  gestione        Gestionerisorsa[]
+  segnalazioni    Segnalazione[]
+  documentazione  Documentazione[]
+}
+
+model Segnalazione {
+  id            Int      @id @default(autoincrement())
+  titolo        String
+  descrizione   String   @db.Text
+  dataCreazione DateTime @default(now())
+  stato         StatoSegnalazione @default(APERTA)
+  
+  utenteId      Int
+  risorsaId     Int?    
+
+  autore        Utente   @relation(fields: [utenteId], references: [id])
+  risorsa       Risorsa? @relation(fields: [risorsaId], references: [id])
+  allegati      Allegato[]
+}
+
+model Allegato {
+  id             Int    @id @default(autoincrement())
+  contenuto      Bytes  @db.LongBlob
+  dimensione     Int
+  segnalazioneId Int
+  
+  segnalazione   Segnalazione @relation(fields: [segnalazioneId], references: [id])
+}
+
+model Formazione {
+  id             Int    @id @default(autoincrement())
+  numeroCorsi    Int
+  argomento      String
+  
+  quiz           Quiz[]
+  videoCorsi     VideoCorso[]
+  documentazione Documentazione[]
+  gestione       GestioneFormazione[]
+}
+
+model GestioneFormazione {
+  id           Int     @id @default(autoincrement())
+  stato        Boolean @default(false)
+  utenteId     Int
+  formazioneId Int
+
+  utente       Utente     @relation(fields: [utenteId], references: [id])
+  formazione   Formazione @relation(fields: [formazioneId], references: [id])
+}
+
+model Quiz {
+  id           Int    @id @default(autoincrement())
+  nome         String
+  durata       Int
+  punteggio    Int
+  formazioneId Int
+  
+  formazione   Formazione @relation(fields: [formazioneId], references: [id])
+  domande      Domanda[]
+}
+
+model Domanda {
+  id               Int     @id @default(autoincrement())
+  descrizione      String
+  rispostaCorretta Boolean
+  statoRisposta    Boolean
+  quizId           Int
+  
+  quiz             Quiz    @relation(fields: [quizId], references: [id])
+}
+
+model VideoCorso {
+  id           Int    @id @default(autoincrement())
+  nome         String
+  durata       Int
+  descrizione  String
+  url          String
+  formazioneId Int
+  
+  formazione   Formazione @relation(fields: [formazioneId], references: [id])
+}
+
+model Documentazione {
+  id           Int    @id @default(autoincrement())
+  nome         String
+  descrizione  String
+  contenuto    Bytes? @db.LongBlob
+  formazioneId Int?
+  risorsaId    Int?
+
+  formazione   Formazione? @relation(fields: [formazioneId], references: [id])
+  risorsa      Risorsa?    @relation(fields: [risorsaId], references: [id])
+}
+
+model Gestionerisorsa {
+  id                Int      @id @default(autoincrement())
+  dataManutenzione  DateTime
+  dataAggiornamento DateTime
+  risorsaId         Int
+  responsabileId    Int
+
+  risorsa           Risorsa @relation(fields: [risorsaId], references: [id])
+  responsabile      Utente  @relation(fields: [responsabileId], references: [id])
+}
