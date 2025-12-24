@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Allegato {
+  id             BigInt        @id @default(autoincrement())
+  contenuto      Bytes
+  dimensione     BigInt?
+  idSegnalazione BigInt?
+  Segnalazione   Segnalazione? @relation(fields: [idSegnalazione], references: [id], onDelete: Cascade)
+}
+
+model Documentazione {
+  id          BigInt      @id @default(autoincrement())
+  nome        String      @db.VarChar
+  descrizione String?     @db.VarChar
+  contenuto   Bytes?
+  formazione  BigInt?
+  risorsa     BigInt?
+  Formazione  Formazione? @relation(fields: [formazione], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Risorsa     Risorsa?    @relation(fields: [risorsa], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Formazione {
+  id                 BigInt               @id @default(autoincrement())
+  numeroCorsi        BigInt
+  argomento          String?              @db.VarChar
+  Documentazione     Documentazione[]
+  GestioneFormazione GestioneFormazione[]
+  Quiz               Quiz[]
+  VideoCorso         VideoCorso[]
+}
+
+model GestioneFormazione {
+  id           BigInt     @default(autoincrement())
+  idFormazione BigInt
+  matricola    String     @db.VarChar
+  stato        String?    @db.VarChar
+  Formazione   Formazione @relation(fields: [idFormazione], references: [id], onDelete: NoAction)
+  Utente       Utente     @relation(fields: [matricola], references: [matricola], onDelete: NoAction)
+
+  @@id([id, idFormazione, matricola])
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model GestioneRisorsa {
+  id                BigInt    @default(autoincrement())
+  matricola         String    @db.VarChar
+  risorsa           BigInt
+  dataManutenzione  DateTime? @db.Date
+  dataAggiornamento DateTime? @db.Date
+  Utente            Utente    @relation(fields: [matricola], references: [matricola], onDelete: NoAction, onUpdate: NoAction)
+  Risorsa           Risorsa   @relation(fields: [risorsa], references: [id], onDelete: NoAction)
+
+  @@id([id, matricola, risorsa])
+}
+
+model Quiz {
+  id         BigInt      @id @default(autoincrement())
+  nome       String      @db.VarChar
+  durata     BigInt?
+  punteggio  BigInt?
+  formazione BigInt?
+  Formazione Formazione? @relation(fields: [formazione], references: [id], onDelete: NoAction)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Risorsa {
+  id              BigInt            @id @default(autoincrement())
+  nome            String            @db.VarChar
+  tipo            String?           @db.VarChar
+  descrizione     String?           @db.VarChar
+  stato           String?           @db.VarChar
+  schedaAllegata  Bytes?
+  Documentazione  Documentazione[]
+  GestioneRisorsa GestioneRisorsa[]
+  Segnalazione    Segnalazione[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Segnalazione {
+  id          BigInt     @id @default(autoincrement())
+  titolo      String     @db.VarChar
+  descrizione String?    @db.VarChar
+  risorsa     BigInt?
+  matricola   String?    @db.VarChar
+  Allegato    Allegato[]
+  Utente      Utente?    @relation(fields: [matricola], references: [matricola], onDelete: NoAction)
+  Risorsa     Risorsa?   @relation(fields: [risorsa], references: [id])
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Utente {
+  matricola          String               @id @db.VarChar
+  nome               String?              @db.VarChar
+  cognome            String?              @db.VarChar
+  dataNascita        DateTime?            @db.Date
+  email              String?              @db.VarChar
+  password           String?              @db.VarChar
+  ruolo              String?              @db.VarChar
+  dataAssunzione     DateTime?            @db.Date
+  GestioneFormazione GestioneFormazione[]
+  GestioneRisorsa    GestioneRisorsa[]
+  Segnalazione       Segnalazione[]
+}
+
+model VideoCorso {
+  id          BigInt      @id @default(autoincrement())
+  nome        String      @db.VarChar
+  durata      BigInt?
+  descrizione String?     @db.VarChar
+  stato       String?     @db.VarChar
+  url         String      @db.VarChar
+  formazione  BigInt?
+  Formazione  Formazione? @relation(fields: [formazione], references: [id], onDelete: NoAction)
+}
