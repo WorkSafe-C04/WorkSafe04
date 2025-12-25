@@ -41,3 +41,6 @@ NEXT_PUBLIC_API_URL=http://localhost:3000/api
 
 DATABASE_URL="postgresql://postgres.rjovbobmdsdrpqaxvyvd:worksafec04@aws-1-eu-west-1.pooler.supabase.com:5432/postgres"
 
+## ChatBot, per farlo funzionare andate sul sito " https://cloud.cerebras.ai/ " 
+## accedete con github e una volta entrati, sulla barra laterale cliccate API KEYS
+## copiatela e nel file .env scrivete: CEREBRAS_API_KEY="(incolla qui l'api key)"

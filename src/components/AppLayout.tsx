@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -48,6 +49,8 @@ interface AppLayoutProps {
 }
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
+  const router = useRouter();
+  const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [currentSection, setCurrentSection] = useState('Dashboard');
   const {
@@ -55,15 +58,20 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   } = theme.useToken();
 
   const handleMenuClick = (e: any) => {
-    const sectionMap: Record<string, string> = {
-      '1': 'Dashboard',
-      '2': 'Profilo',
-      '3': 'Formazione',
-      '4': 'Chatbot',
-      '5': 'Crea Segnalazione',
-      '6': 'Risorse',
+    const routeMap: Record<string, { path: string; name: string }> = {
+      '1': { path: '/', name: 'Dashboard' },
+      '2': { path: '/profilo', name: 'Profilo' },
+      '3': { path: '/formazione', name: 'Formazione' },
+      '4': { path: '/chatbot', name: 'Chatbot' },
+      '5': { path: '/segnalazione', name: 'Crea Segnalazione' },
+      '6': { path: '/risorse', name: 'Risorse' },
     };
-    setCurrentSection(sectionMap[e.key] || 'Dashboard');
+    
+    const route = routeMap[e.key];
+    if (route) {
+      setCurrentSection(route.name);
+      router.push(route.path);
+    }
   };
 
   const userMenuItems: MenuProps['items'] = [
