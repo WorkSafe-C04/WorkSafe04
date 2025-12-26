@@ -1,8 +1,10 @@
 
-export interface ISegnalazione {
+export interface Segnalazione {
   id: number;
-  titolo: string;
-  descrizione: string;
-  stato: string; 
+  titolo: string | undefined;
+  descrizione: string | undefined;
+  risorsa: string | undefined;
+  matricola: string | undefined;
   dataCreazione: string | Date;
+  stato: string | undefined;
 }

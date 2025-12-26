@@ -1,17 +1,19 @@
 import { SegnalazioneRepository } from '@/repository/segnalazioneRepository';
-import { ISegnalazione } from '@/model/segnalazione';
+import { Segnalazione } from '@/model/segnalazione';
 
 export const SegnalazioneService = {
-  getSegnalazioni: async (): Promise<ISegnalazione[]> => {
-    // Recupera i dati dal repository 
+  getSegnalazioni: async (): Promise<Segnalazione[]> => {
+    
     const rawData = await SegnalazioneRepository.getAll();
     
     return rawData.map((item: any) => ({
       id: item.id,
       titolo: item.titolo,
       descrizione: item.descrizione,
+      risorsa: item.risorsa,
+      matricola: item.matricola,
+      dataCreazione: item.dataCreazione,
       stato: item.stato,
-      dataCreazione: item.dataCreazione
     }));
   }
 };

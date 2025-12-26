@@ -3,7 +3,7 @@
 import { useSegnalazioni } from '@/hook/useSegnalazioni';
 import { Card, Tag, Spin, Alert } from 'antd'; 
 
-export default function SegnalazioniPage() {
+export default function ListaSegnalazioni() {
   const { data, loading, error } = useSegnalazioni();
 
   if (loading) return <div className="p-10"><Spin size="large" /></div>;

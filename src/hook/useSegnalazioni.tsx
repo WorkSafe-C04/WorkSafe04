@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { SegnalazioneService } from '@/service/segnalazioneService';
-import { ISegnalazione } from '@/model/segnalazione';
+import { Segnalazione } from '@/model/segnalazione';
 
 export const useSegnalazioni = () => {
-  const [data, setData] = useState<ISegnalazione[]>([]);
+  const [data, setData] = useState<Segnalazione[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,5 +15,5 @@ export const useSegnalazioni = () => {
       .finally(() => setLoading(false)); 
   }, []);
 
-  return { data, loading, error };
+  return { data, loading, error};
 };
