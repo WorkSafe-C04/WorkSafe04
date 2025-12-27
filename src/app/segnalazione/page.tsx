@@ -1,40 +1,21 @@
 'use client';
-import React, { useState } from 'react';
+
 import { AntdRegistry } from '@ant-design/nextjs-registry';
-import AppLayout from '@/components/AppLayout';
-import { Form, Input, Button, Card, message, Typography } from 'antd';
-import { useRouter } from 'next/navigation';
+import { Form, Input, Button, Card, Typography } from 'antd';
+import { useCreaSegnalazione } from '@/hook/creaSegnalazioneHook';
+
 
 const { Title } = Typography;
 const { TextArea } = Input;
 
 export default function NuovaSegnalazionePage() {
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const { creaSegnalazione, loading } = useCreaSegnalazione();
 
   const onFinish = async (values: any) => {
-    setLoading(true);
-    try {
-      const response = await fetch('/api/segnalazioni', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
-      });
-
-      if (response.ok) {
-        message.success('Segnalazione creata con successo!');
-        form.resetFields();
-        router.push('/segnalazioni'); // Reindirizza alla lista
-        router.refresh();
-      } else {
-        const errorData = await response.json();
-        message.error(`Errore: ${errorData.error}`);
-      }
-    } catch (error) {
-      message.error('Errore durante la connessione al server');
-    } finally {
-      setLoading(false);
+    const success = await creaSegnalazione(values);
+    if (success) {
+      form.resetFields();
     }
   };
 
