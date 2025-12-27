@@ -8,6 +8,7 @@ export const useSegnalazioni = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    
     SegnalazioneService.getSegnalazioni()
       .then((res) => setData(res))
       .catch((err) => setError('Impossibile caricare le segnalazioni'))
