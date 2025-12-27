@@ -2,6 +2,7 @@ import prisma from '@/core/db/prisma';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 import { UtenteNoPass } from '@/model/utente';
+import { generateToken } from '@/lib/auth';
 
 export async function POST(request: Request): Promise<Response> {
     try {
@@ -15,7 +16,7 @@ export async function POST(request: Request): Promise<Response> {
             }, { status: 400 });
         }
 
-        const user = await prisma.utente.findUnique({
+        const user = await prisma.utente.findFirst({
             where: {email}
         });
 
@@ -40,6 +41,13 @@ export async function POST(request: Request): Promise<Response> {
             }, { status: 401 });
         }
 
+        // Genera il token JWT
+        const token = generateToken({
+            matricola: user.matricola,
+            email: user.email!,
+            ruolo: user.ruolo || 'Dipendente'
+        });
+
         //Se la password è corretta, restituisce gli attributi dell'utente senza la password
         const userWithoutPassword: UtenteNoPass = {
             matricola: user.matricola,
@@ -51,9 +59,21 @@ export async function POST(request: Request): Promise<Response> {
             dataAssunzione: user.dataAssunzione ? user.dataAssunzione : undefined
         };
 
-        return NextResponse.json({
-            user: userWithoutPassword
+        const response = NextResponse.json({
+            user: userWithoutPassword,
+            token
         });
+
+        // Imposta il token come cookie HTTP-only
+        response.cookies.set('auth-token', token, {
+            httpOnly: true,
+            secure: false, // false per funzionare in localhost
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24, // 24 ore
+            path: '/'
+        });
+
+        return response;
     } catch (error) {
         return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
     }

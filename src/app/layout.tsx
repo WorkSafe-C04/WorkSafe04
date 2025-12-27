@@ -1,6 +1,7 @@
 import React from 'react';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
-import AppLayout from '@/components/AppLayout';
+import ConditionalLayout from '@/components/ConditionalLayout';
+import './globals.css';
 
 
 export const metadata = {
@@ -17,7 +18,7 @@ export default function RootLayout({
     <html lang="it" style={{ margin: 0, padding: 0, height: '100%' }}>
       <body style={{ margin: 0, padding: 0, height: '100%' }}>
         <AntdRegistry>
-          <AppLayout>{children}</AppLayout>
+          <ConditionalLayout>{children}</ConditionalLayout>
         </AntdRegistry>
       </body>
     </html>
