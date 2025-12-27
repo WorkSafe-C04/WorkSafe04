@@ -66,8 +66,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       '/profilo': { key: '2', name: 'Profilo' },
       '/formazione': { key: '3', name: 'Formazione' },
       '/chatbot': { key: '4', name: 'Chatbot' },
-      '/segnalazione': { key: '5', name: 'Crea Segnalazione' },
+      '/creaSegnalazione': { key: '5', name: 'Crea Segnalazione' },
       '/risorse': { key: '6', name: 'Risorse' },
+
     };
     return pathMap[path] || { key: '1', name: 'Dashboard' };
   };
@@ -95,7 +96,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       '2': '/profilo',
       '3': '/formazione',
       '4': '/chatbot',
-      '5': '/segnalazione',
+      '5': '/creaSegnalazione',
       '6': '/risorse',
     };
     
