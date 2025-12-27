@@ -70,10 +70,17 @@ export default function LoginPage() {
                                 transition: 'all 0.3s',
                                 outline: 'none',
                                 boxSizing: 'border-box',
+                                color: '#333',
                             }}
                             onFocus={(e) => e.target.style.borderColor = '#667eea'}
                             onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
                         />
+                        <style jsx>{`
+                            input::placeholder {
+                                color: #999 !important;
+                                opacity: 1;
+                            }
+                        `}</style>
                     </div>
                 </div>
 
@@ -97,10 +104,17 @@ export default function LoginPage() {
                                 transition: 'all 0.3s',
                                 outline: 'none',
                                 boxSizing: 'border-box',
+                                color: '#333',
                             }}
                             onFocus={(e) => e.target.style.borderColor = '#667eea'}
                             onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
                         />
+                        <style jsx>{`
+                            input::placeholder {
+                                color: #999 !important;
+                                opacity: 1;
+                            }
+                        `}</style>
                     </div>
                 </div>
 

@@ -12,8 +12,7 @@ const axiosInstance = axios.create({
 // Request interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    // I cookie vengono inviati automaticamente con withCredentials: true
-    // Ma manteniamo il supporto per Authorization header come fallback
+    //gestione token cn i cookie
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

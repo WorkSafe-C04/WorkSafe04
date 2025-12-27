@@ -50,9 +50,21 @@ export default function RegisterPage() {
         transition: 'all 0.3s',
         outline: 'none',
         boxSizing: 'border-box' as const,
+        color: '#333',
     };
 
     return (
+        <>
+        <style jsx>{`
+            input::placeholder,
+            select option:first-child {
+                color: #999 !important;
+                opacity: 1;
+            }
+            input, select {
+                color: #333 !important;
+            }
+        `}</style>
         <div style={{
             background: 'white',
             borderRadius: '16px',
@@ -229,5 +241,6 @@ export default function RegisterPage() {
                 </p>
             </div>
         </div>
+        </>
     );
 }
