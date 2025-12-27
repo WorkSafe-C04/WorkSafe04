@@ -7,4 +7,5 @@ export interface Segnalazione {
   matricola: string | undefined;
   dataCreazione: string | Date;
   stato: string | undefined;
+  allegati?: string[];
 }

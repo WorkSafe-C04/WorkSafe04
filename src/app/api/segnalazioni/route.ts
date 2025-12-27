@@ -23,31 +23,27 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-  
-    const body = await request.json();
-    
-    
+    const formData = await request.formData();
+    const files = formData.getAll('files') as File[];
+
     const nuovaSegnalazione = await prisma.segnalazione.create({
       data: {
-        titolo: body.titolo,
-        descrizione: body.descrizione,
-        risorsa: body.risorsa,
-        matricola: body.matricola,
-      },
+        titolo: formData.get('titolo') as string,
+        descrizione: formData.get('descrizione') as string,
+        risorsa: BigInt(formData.get('risorsa') as string),
+        matricola: formData.get('matricola') as string,
+        Allegato: { 
+          create: await Promise.all(files.map(async (f) => ({
+            contenuto: Buffer.from(await f.arrayBuffer()),
+            dimensione: BigInt(f.size),
+          })))
+        }
+      }
     });
 
-    const serializedSegnalazione = JSON.parse(
-      JSON.stringify(nuovaSegnalazione, (key, value) =>
-        typeof value === 'bigint' ? value.toString() : value
-      )
-    );
-
-    return NextResponse.json(serializedSegnalazione, { status: 201 });
-
+    return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : String(error) }, 
-      { status: 500 }
-    );
+    console.error("Errore salvataggio:", error);
+    return NextResponse.json({ error: "Errore interno" }, { status: 500 });
   }
 }

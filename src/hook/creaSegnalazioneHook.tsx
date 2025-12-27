@@ -11,10 +11,26 @@ export function useCreaSegnalazione() {
   const creaSegnalazione = async (values: any) => {
     setLoading(true);
     try {
+      // Usiamo FormData per supportare i file
+      const formData = new FormData();
+      formData.append('titolo', values.titolo || '');
+      formData.append('descrizione', values.descrizione || '');
+      formData.append('risorsa', values.risorsa || '');
+      formData.append('matricola', values.matricola || '');
+
+     if (values.allegati) {
+        values.allegati.forEach((fileItem: any) => {
+          // originFileObj è il file reale richiesto dal backend
+          if (fileItem.originFileObj) {
+            formData.append('files', fileItem.originFileObj);
+          }
+        });
+      }
+
       const response = await fetch('/api/segnalazioni', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
+        // Nota: Non impostare Content-Type header, il browser lo farà da solo con il boundary corretto
+        body: formData, 
       });
 
       if (response.ok) {
