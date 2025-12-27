@@ -1,8 +1,18 @@
 
 import prisma from '@/core/db/prisma';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/apiAuth';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Verifica autenticazione
+  const user = requireAuth(request);
+  if (!user) {
+    return NextResponse.json(
+      { error: 'Non autorizzato. Effettua il login.' },
+      { status: 401 }
+    );
+  }
+
   try {
 
     const segnalazioni = await prisma.segnalazione.findMany({

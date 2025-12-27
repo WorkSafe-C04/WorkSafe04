@@ -18,7 +18,11 @@ export default function LoginPage() {
             return;
         }
         try {
-            await login(email, password);
+            const userData = await login(email, password);
+            // Salva i dati dell'utente nel localStorage
+            if (userData) {
+                localStorage.setItem('user', JSON.stringify(userData));
+            }
             message.success('Login riuscito!');
             window.location.href = '/home';
         } catch (err) {

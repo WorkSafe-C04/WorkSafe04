@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import {
   DashboardOutlined,
@@ -15,7 +15,8 @@ import {
   LogoutOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
-import { Breadcrumb, Layout, Menu, theme, Avatar, Badge, Dropdown, Space } from 'antd';
+import { Breadcrumb, Layout, Menu, theme, Avatar, Badge, Dropdown, Space, message } from 'antd';
+import { useLogout } from '@/hook/logoutHook';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -52,25 +53,55 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const [currentSection, setCurrentSection] = useState('Dashboard');
+  const [userData, setUserData] = useState<{ nome?: string; cognome?: string; email?: string } | null>(null);
+  const { logout, loading: logoutLoading } = useLogout();
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
+  // Mappa il pathname alla chiave del menu e al nome della sezione
+  const getMenuKeyFromPath = (path: string): { key: string; name: string } => {
+    const pathMap: Record<string, { key: string; name: string }> = {
+      '/home': { key: '1', name: 'Dashboard' },
+      '/profilo': { key: '2', name: 'Profilo' },
+      '/formazione': { key: '3', name: 'Formazione' },
+      '/chatbot': { key: '4', name: 'Chatbot' },
+      '/segnalazione': { key: '5', name: 'Crea Segnalazione' },
+      '/risorse': { key: '6', name: 'Risorse' },
+    };
+    return pathMap[path] || { key: '1', name: 'Dashboard' };
+  };
+
+  const currentMenu = getMenuKeyFromPath(pathname || '/home');
+  const selectedKeys = [currentMenu.key];
+  const currentSection = currentMenu.name;
+
+  // Recupera i dati dell'utente dal localStorage
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        setUserData(user);
+      } catch (error) {
+        console.error('Errore nel parsing dei dati utente:', error);
+      }
+    }
+  }, []);
+
   const handleMenuClick = (e: any) => {
-    const routeMap: Record<string, { path: string; name: string }> = {
-      '1': { path: '/', name: 'Dashboard' },
-      '2': { path: '/profilo', name: 'Profilo' },
-      '3': { path: '/formazione', name: 'Formazione' },
-      '4': { path: '/chatbot', name: 'Chatbot' },
-      '5': { path: '/segnalazione', name: 'Crea Segnalazione' },
-      '6': { path: '/risorse', name: 'Risorse' },
+    const routeMap: Record<string, string> = {
+      '1': '/home',
+      '2': '/profilo',
+      '3': '/formazione',
+      '4': '/chatbot',
+      '5': '/segnalazione',
+      '6': '/risorse',
     };
     
-    const route = routeMap[e.key];
-    if (route) {
-      setCurrentSection(route.name);
-      router.push(route.path);
+    const path = routeMap[e.key];
+    if (path) {
+      router.push(path);
     }
   };
 
@@ -96,6 +127,33 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     },
   ];
 
+  const handleUserMenuClick: MenuProps['onClick'] = async ({ key }) => {
+    if (key === 'logout') {
+      try {
+        await logout();
+        localStorage.removeItem('user');
+        message.success('Logout effettuato con successo');
+        router.push('/auth/login');
+      } catch (error) {
+        message.error('Errore durante il logout');
+      }
+    } else if (key === 'profile') {
+      router.push('/profilo');
+    } else if (key === 'settings') {
+      router.push('/impostazioni');
+    }
+  };
+
+  // Determina il nome da mostrare
+  const displayName = userData?.nome && userData?.cognome 
+    ? `${userData.nome} ${userData.cognome}`
+    : userData?.email?.split('@')[0] || 'Utente';
+
+  // Iniziali per l'avatar
+  const avatarText = userData?.nome && userData?.cognome
+    ? `${userData.nome[0]}${userData.cognome[0]}`.toUpperCase()
+    : displayName[0].toUpperCase();
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
@@ -115,7 +173,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           <SafetyOutlined style={{ fontSize: collapsed ? '32px' : '28px', marginRight: collapsed ? 0 : '12px' }} />
           {!collapsed && <span>WorkSafe</span>}
         </div>
-        <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} onClick={handleMenuClick} />
+        <Menu 
+          theme="dark" 
+          selectedKeys={selectedKeys} 
+          mode="inline" 
+          items={items} 
+          onClick={handleMenuClick} 
+        />
       </Sider>
       <Layout>
         <Header 
@@ -135,10 +199,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             <Badge count={3} size="small">
               <BellOutlined style={{ fontSize: '20px', cursor: 'pointer', color: '#595959' }} />
             </Badge>
-            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+            <Dropdown menu={{ items: userMenuItems, onClick: handleUserMenuClick }} placement="bottomRight">
               <Space style={{ cursor: 'pointer' }}>
-                <Avatar style={{ backgroundColor: '#1890ff' }} icon={<UserOutlined />} />
-                <span style={{ color: '#001529' }}>Bill</span>
+                <Avatar style={{ backgroundColor: '#1890ff' }}>
+                  {avatarText}
+                </Avatar>
+                <span style={{ color: '#001529' }}>{displayName}</span>
               </Space>
             </Dropdown>
           </Space>

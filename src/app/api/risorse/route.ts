@@ -1,5 +1,6 @@
 import prisma from '@/core/db/prisma';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/apiAuth';
 
 const serializeData = (data: any) => {
   return JSON.parse(JSON.stringify(data, (key, value) =>
@@ -8,7 +9,16 @@ const serializeData = (data: any) => {
 };
 
 // NUOVA FUNZIONE: Legge tutte le risorse
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Verifica autenticazione
+  const user = requireAuth(request);
+  if (!user) {
+    return NextResponse.json(
+      { error: 'Non autorizzato. Effettua il login.' },
+      { status: 401 }
+    );
+  }
+
   try {
     const risorse = await prisma.risorsa.findMany({
       orderBy: { id: 'desc' }
@@ -26,11 +36,26 @@ export async function GET() {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // Verifica autenticazione e ruolo
+  const user = requireAuth(req);
+  if (!user) {
+    return NextResponse.json(
+      { error: 'Non autorizzato. Effettua il login.' },
+      { status: 401 }
+    );
+  }
+
+  // Solo Admin e RSPP possono creare risorse
+  if (!['Admin', 'RSPP'].includes(user.ruolo)) {
+    return NextResponse.json(
+      { error: 'Permessi insufficienti. Solo Admin e RSPP possono creare risorse.' },
+      { status: 403 }
+    );
+  }
+
   try {
     const body = await req.json();
-    const MOCK_ROLE = "RS"; 
-    if (MOCK_ROLE !== "RS") return NextResponse.json({ error: "Non autorizzato" }, { status: 403 });
 
     let bufferFile = null;
     if (body.schedaAllegata) {
