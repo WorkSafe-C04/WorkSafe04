@@ -38,7 +38,7 @@ export default function NuovaSegnalazionePage() {
         // Se la segnalazione è anonima, rimuovi la matricola
         const dataToSubmit = {
             ...values,
-            matricola: isAnonima ? undefined : values.matricola
+            matricola: isAnonima ? "Anonimo" : values.matricola
         };
 
         const success = await creaSegnalazione(dataToSubmit);
@@ -94,7 +94,7 @@ export default function NuovaSegnalazionePage() {
                                         (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
                                     }
                                     options={risorse.map(risorsa => ({
-                                        value: risorsa.nome,
+                                        value: risorsa.id,
                                         label: risorsa.nome,
                                     }))}
                                 />
@@ -111,7 +111,7 @@ export default function NuovaSegnalazionePage() {
                                 ]}
                             >
                                 <Input
-                                    placeholder="Matricola utente"
+                                    placeholder="Anonimo"
                                     disabled={isAnonima}
                                     style={{
                                         backgroundColor: isAnonima ? '#f5f5f5' : 'white',
@@ -127,7 +127,7 @@ export default function NuovaSegnalazionePage() {
                                 onChange={(e) => {
                                     setIsAnonima(e.target.checked);
                                     if (e.target.checked) {
-                                        form.setFieldsValue({ matricola: undefined });
+                                        form.setFieldsValue({ matricola: "Anonimo" });
                                     } else if (userMatricola) {
                                         form.setFieldsValue({ matricola: userMatricola });
                                     }

@@ -16,7 +16,10 @@ export function useCreaSegnalazione() {
       formData.append('titolo', values.titolo || '');
       formData.append('descrizione', values.descrizione || '');
       formData.append('risorsa', values.risorsa || '');
-      formData.append('matricola', values.matricola || '');
+      
+      // Passa la matricola come ricevuta, incluso "Anonimo" se flaggato
+      const matricola = values.matricola || 'Anonimo';
+      formData.append('matricola', matricola);
 
      if (values.allegati) {
         values.allegati.forEach((fileItem: any) => {
@@ -35,7 +38,7 @@ export function useCreaSegnalazione() {
 
       if (response.ok) {
         message.success('Segnalazione creata con successo!');
-        router.push('/segnalazioni');
+        router.push('/home');
         router.refresh();
         return true;
       } else {
