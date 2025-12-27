@@ -46,10 +46,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Solo Admin e RSPP possono creare risorse
-  if (!['Admin', 'RSPP'].includes(user.ruolo)) {
+  // Solo DatoreDiLavoro e ResponsabileSicurezza possono creare risorse
+  if (!['DatoreDiLavoro', 'ResponsabileSicurezza'].includes(user.ruolo)) {
     return NextResponse.json(
-      { error: 'Permessi insufficienti. Solo Admin e RSPP possono creare risorse.' },
+      { error: 'Permessi insufficienti. Solo DatoreDiLavoro e ResponsabileSicurezza possono creare risorse.' },
       { status: 403 }
     );
   }
