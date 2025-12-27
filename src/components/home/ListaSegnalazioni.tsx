@@ -1,6 +1,6 @@
 'use client'; 
 
-import { useSegnalazioni } from '@/hook/useSegnalazioni';
+import { useSegnalazioni } from '@/hook/segnalazioniHook';
 import { Card, Tag, Spin, Alert } from 'antd'; 
 
 export default function ListaSegnalazioni() {

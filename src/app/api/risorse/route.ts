@@ -13,7 +13,14 @@ export async function GET() {
     const risorse = await prisma.risorsa.findMany({
       orderBy: { id: 'desc' }
     });
-    return NextResponse.json(serializeData(risorse));
+    
+    // Mappiamo le risorse indicando se hanno un allegato o meno
+    const risorseConAllegati = risorse.map(risorsa => ({
+      ...risorsa,
+      schedaAllegata: risorsa.schedaAllegata ? true : null
+    }));
+    
+    return NextResponse.json(serializeData(risorseConAllegati));
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }

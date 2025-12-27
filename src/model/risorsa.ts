@@ -4,5 +4,6 @@ export interface Risorsa {
   tipo: string | undefined;
   descrizione: string | undefined;
   stato: string | undefined;
-  schedaAllegata: string | undefined;
+  schedaAllegata?: string; // Base64 encoded bytea from Supabase
+  nomeFile?: string; // Nome del file allegato
 }
