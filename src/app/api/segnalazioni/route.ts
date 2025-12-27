@@ -30,3 +30,30 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const formData = await request.formData();
+    const files = formData.getAll('files') as File[];
+
+    const nuovaSegnalazione = await prisma.segnalazione.create({
+      data: {
+        titolo: formData.get('titolo') as string,
+        descrizione: formData.get('descrizione') as string,
+        risorsa: BigInt(formData.get('risorsa') as string),
+        matricola: formData.get('matricola') as string,
+        Allegato: { 
+          create: await Promise.all(files.map(async (f) => ({
+            contenuto: Buffer.from(await f.arrayBuffer()),
+            dimensione: BigInt(f.size),
+          })))
+        }
+      }
+    });
+
+    return NextResponse.json({ success: true }, { status: 201 });
+  } catch (error) {
+    console.error("Errore salvataggio:", error);
+    return NextResponse.json({ error: "Errore interno" }, { status: 500 });
+  }
+}
