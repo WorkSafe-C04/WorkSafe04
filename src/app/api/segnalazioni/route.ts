@@ -17,14 +17,14 @@ export async function GET(request: NextRequest) {
 
     const segnalazioni = await prisma.segnalazione.findMany({
       orderBy: {
-         dataCreazione: 'desc'
+        dataCreazione: 'desc'
       },
     });
-    
+
     const serializedSegnalazioni = JSON.parse(JSON.stringify(segnalazioni, (key, value) =>
       typeof value === 'bigint' ? value.toString() : value
     ));
-    
+
     return NextResponse.json(serializedSegnalazioni);
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
         descrizione: formData.get('descrizione') as string,
         risorsa: BigInt(formData.get('risorsa') as string),
         matricola: formData.get('matricola') as string,
-        Allegato: { 
+        Allegato: {
           create: await Promise.all(files.map(async (f) => ({
             contenuto: Buffer.from(await f.arrayBuffer()),
             dimensione: BigInt(f.size),

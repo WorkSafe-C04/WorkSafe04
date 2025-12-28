@@ -3,9 +3,9 @@ import { Segnalazione } from '@/model/segnalazione';
 
 export const SegnalazioneService = {
   getSegnalazioni: async (): Promise<Segnalazione[]> => {
-    
+
     const rawData = await SegnalazioneRepository.getAll();
-    
+
     return rawData.map((item: any) => ({
       id: item.id,
       titolo: item.titolo,

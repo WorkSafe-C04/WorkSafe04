@@ -12,11 +12,11 @@ export default function RisorsePage() {
   const handleCloseModal = () => setIsModalOpen(false);
 
   return (
-    <div style={{ 
-      padding: '40px 20px', 
-      maxWidth: '1400px', 
-      margin: '0 auto', 
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+    <div style={{
+      padding: '40px 20px',
+      maxWidth: '1400px',
+      margin: '0 auto',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       minHeight: '100vh',
       borderRadius: '10px'
     }}>
@@ -28,10 +28,10 @@ export default function RisorsePage() {
         boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-          <h1 style={{ 
+          <h1 style={{
             margin: 0,
-            fontSize: '42px', 
-            fontWeight: '800', 
+            fontSize: '42px',
+            fontWeight: '800',
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
@@ -39,7 +39,7 @@ export default function RisorsePage() {
           }}>
             🔧 Gestione Risorse & Manutenzione
           </h1>
-          
+
           <Button
             type="primary"
             size="large"
@@ -69,8 +69,8 @@ export default function RisorsePage() {
         {/* Modale per Creazione Risorsa */}
         <Modal
           title={
-            <span style={{ 
-              fontSize: '24px', 
+            <span style={{
+              fontSize: '24px',
               fontWeight: '700',
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               WebkitBackgroundClip: 'text',

@@ -16,8 +16,8 @@ export const ListaRisorse: React.FC = () => {
       dataIndex: 'nome',
       key: 'nome',
       render: (text: string) => (
-        <strong style={{ 
-          fontSize: '15px', 
+        <strong style={{
+          fontSize: '15px',
           color: '#1a1a2e',
           display: 'flex',
           alignItems: 'center',
@@ -32,10 +32,10 @@ export const ListaRisorse: React.FC = () => {
       dataIndex: 'tipo',
       key: 'tipo',
       render: (tipo: string) => (
-        <Tag 
-          color={getTipoColor(tipo)} 
-          style={{ 
-            fontSize: '14px', 
+        <Tag
+          color={getTipoColor(tipo)}
+          style={{
+            fontSize: '14px',
             padding: '4px 12px',
             borderRadius: '10px',
             fontWeight: '600'
@@ -61,17 +61,17 @@ export const ListaRisorse: React.FC = () => {
         if (!scheda) {
           return <span style={{ color: '#999', fontSize: '14px' }}>Nessun allegato</span>;
         }
-        
+
         const handleOpen = () => {
           // Apre il file tramite l'endpoint API dedicato
           window.open(scheda, '_blank');
         };
-        
+
         return (
-          <a 
+          <a
             onClick={handleOpen}
-            style={{ 
-              color: '#667eea', 
+            style={{
+              color: '#667eea',
               cursor: 'pointer',
               textDecoration: 'underline',
               fontSize: '14px',
@@ -105,11 +105,11 @@ export const ListaRisorse: React.FC = () => {
   ];
 
   return (
-    <Card 
+    <Card
       title={<span style={{ fontSize: '20px', fontWeight: '600' }}>📋 Inventario Risorse</span>}
       extra={
-        <Button 
-          icon={<SyncOutlined />} 
+        <Button
+          icon={<SyncOutlined />}
           onClick={refresh}
           size="large"
           style={{
@@ -124,8 +124,8 @@ export const ListaRisorse: React.FC = () => {
           Aggiorna
         </Button>
       }
-      style={{ 
-        marginTop: '20px', 
+      style={{
+        marginTop: '20px',
         borderRadius: '10px',
         boxShadow: '0 8px 24px rgba(102, 126, 234, 0.15)',
         border: 'none',
@@ -144,7 +144,7 @@ export const ListaRisorse: React.FC = () => {
         columns={columns}
         rowKey="id"
         loading={loading}
-        pagination={{ 
+        pagination={{
           pageSize: 6,
           showSizeChanger: true,
           pageSizeOptions: ['6', '12', '20', '50'],

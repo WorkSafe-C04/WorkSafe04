@@ -1,14 +1,14 @@
-'use client'; 
+'use client';
 
 import { useSegnalazioni } from '@/hook/segnalazioniHook';
-import { Card, Tag, Spin, Alert, Empty, Row, Col, Space, Badge } from 'antd'; 
-import { 
-  WarningOutlined, 
-  CheckCircleOutlined, 
+import { Card, Tag, Spin, Alert, Empty, Row, Col, Space, Badge } from 'antd';
+import {
+  WarningOutlined,
+  CheckCircleOutlined,
   ClockCircleOutlined,
   CalendarOutlined,
   FileTextOutlined,
-  ExclamationCircleOutlined 
+  ExclamationCircleOutlined
 } from '@ant-design/icons';
 
 export default function ListaSegnalazioni() {
@@ -21,13 +21,13 @@ export default function ListaSegnalazioni() {
       </div>
     );
   }
-  
+
   if (error) {
     return (
-      <Alert 
-        message="Errore nel caricamento" 
-        description={error} 
-        type="error" 
+      <Alert
+        message="Errore nel caricamento"
+        description={error}
+        type="error"
         showIcon
         style={{ margin: '20px' }}
       />
@@ -36,7 +36,7 @@ export default function ListaSegnalazioni() {
 
   if (!data || data.length === 0) {
     return (
-      <Empty 
+      <Empty
         description="Nessuna segnalazione presente"
         image={Empty.PRESENTED_IMAGE_SIMPLE}
         style={{ padding: '60px 0' }}
@@ -70,9 +70,9 @@ export default function ListaSegnalazioni() {
 
   return (
     <div>
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: '24px'
       }}>
@@ -85,20 +85,20 @@ export default function ListaSegnalazioni() {
           </p>
         </Space>
       </div>
-      
+
       <Row gutter={[16, 16]}>
         {data.map((segnalazione) => {
           const statoConfig = getStatoConfig(segnalazione.stato);
-          
+
           return (
             <Col xs={24} sm={24} md={12} lg={8} key={segnalazione.id}>
-              <Badge.Ribbon 
-                text={statoConfig.text} 
+              <Badge.Ribbon
+                text={statoConfig.text}
                 color={statoConfig.color}
               >
                 <Card
                   hoverable
-                  style={{ 
+                  style={{
                     height: '100%',
                     borderRadius: '8px',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
@@ -108,19 +108,19 @@ export default function ListaSegnalazioni() {
                   }}
                 >
                   <Space direction="vertical" size={12} style={{ width: '100%' }}>
-                    <div style={{ 
-                      display: 'flex', 
+                    <div style={{
+                      display: 'flex',
                       alignItems: 'flex-start',
                       gap: '8px'
                     }}>
-                      <WarningOutlined style={{ 
-                        fontSize: '20px', 
+                      <WarningOutlined style={{
+                        fontSize: '20px',
                         color: '#ff4d4f',
                         marginTop: '2px'
                       }} />
-                      <h3 style={{ 
-                        margin: 0, 
-                        fontSize: '16px', 
+                      <h3 style={{
+                        margin: 0,
+                        fontSize: '16px',
                         fontWeight: '600',
                         flex: 1,
                         lineHeight: '1.4'
@@ -128,9 +128,9 @@ export default function ListaSegnalazioni() {
                         {segnalazione.titolo}
                       </h3>
                     </div>
-                    
-                    <p style={{ 
-                      margin: 0, 
+
+                    <p style={{
+                      margin: 0,
                       color: '#666',
                       fontSize: '14px',
                       lineHeight: '1.6',
@@ -143,8 +143,8 @@ export default function ListaSegnalazioni() {
                       {segnalazione.descrizione}
                     </p>
 
-                    <div style={{ 
-                      display: 'flex', 
+                    <div style={{
+                      display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       paddingTop: '8px',

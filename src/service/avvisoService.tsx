@@ -2,7 +2,7 @@ import { Avviso } from "@/model/avviso";
 import { avvisoRepository } from "@/repository/avvisoRepository";
 
 export const avvisoService = {
-    createAvviso: async (avviso : any): Promise<Avviso> => {
+    createAvviso: async (avviso: any): Promise<Avviso> => {
         const jsonData = await avvisoRepository.create(avviso);
         return jsonData;
     },

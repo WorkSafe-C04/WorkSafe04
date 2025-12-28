@@ -7,8 +7,8 @@ import { generateToken } from '@/lib/auth';
 export async function POST(request: Request): Promise<Response> {
     try {
         const body = await request.json();
-        
-        const {email, password} = body;
+
+        const { email, password } = body;
 
         if (!email || !password) {
             return NextResponse.json({
@@ -17,7 +17,7 @@ export async function POST(request: Request): Promise<Response> {
         }
 
         const user = await prisma.utente.findFirst({
-            where: {email}
+            where: { email }
         });
 
         if (!user) {

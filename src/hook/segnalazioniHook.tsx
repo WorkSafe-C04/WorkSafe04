@@ -12,8 +12,8 @@ export const useSegnalazioni = () => {
     SegnalazioneService.getSegnalazioni()
       .then((res) => setData(res))
       .catch((err) => setError('Impossibile caricare le segnalazioni'))
-      .finally(() => setLoading(false)); 
+      .finally(() => setLoading(false));
   }, []);
 
-  return { data, loading, error};
+  return { data, loading, error };
 };

@@ -34,7 +34,7 @@ export const useCreateAvviso = () => {
             };
 
             await avvisoService.createAvviso(payload);
-                message.success('Avviso creato con successo! 🎉');
+            message.success('Avviso creato con successo! 🎉');
 
             if (onSuccess) {
                 onSuccess();

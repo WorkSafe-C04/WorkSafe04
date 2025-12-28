@@ -16,12 +16,12 @@ export function useCreaSegnalazione() {
       formData.append('titolo', values.titolo || '');
       formData.append('descrizione', values.descrizione || '');
       formData.append('risorsa', values.risorsa || '');
-      
+
       // Passa la matricola come ricevuta, incluso "Anonimo" se flaggato
       const matricola = values.matricola || 'Anonimo';
       formData.append('matricola', matricola);
 
-     if (values.allegati) {
+      if (values.allegati) {
         values.allegati.forEach((fileItem: any) => {
           // originFileObj è il file reale richiesto dal backend
           if (fileItem.originFileObj) {
@@ -33,7 +33,7 @@ export function useCreaSegnalazione() {
       const response = await fetch('/api/segnalazioni', {
         method: 'POST',
         // Nota: Non impostare Content-Type header, il browser lo farà da solo con il boundary corretto
-        body: formData, 
+        body: formData,
       });
 
       if (response.ok) {

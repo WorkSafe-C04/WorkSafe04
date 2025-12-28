@@ -6,6 +6,8 @@ import { useUtenti } from "@/hook/utenteHook";
 
 export default function HomePage() {
   return (
-    <><CreateAvvisoForm /></>
+    <>
+      <CreateAvvisoForm />
+    </>
   );
 }

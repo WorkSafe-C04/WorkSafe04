@@ -5,6 +5,9 @@ import { useUtenti } from "@/hook/utenteHook";
 
 export default function HomePage() {
   return (
-    <><Carosello /><ListaAvvisi /></>
+    <>
+      <Carosello />
+      <ListaAvvisi />
+    </>
   );
 }

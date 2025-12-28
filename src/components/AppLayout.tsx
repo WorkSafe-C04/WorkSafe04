@@ -99,7 +99,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       '5': '/creaSegnalazione',
       '6': '/risorse',
     };
-    
+
     const path = routeMap[e.key];
     if (path) {
       router.push(path);
@@ -146,7 +146,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   };
 
   // Determina il nome da mostrare
-  const displayName = userData?.nome && userData?.cognome 
+  const displayName = userData?.nome && userData?.cognome
     ? `${userData.nome} ${userData.cognome}`
     : userData?.email?.split('@')[0] || 'Utente';
 
@@ -158,7 +158,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-        <div 
+        <div
           style={{
             height: '64px',
             margin: '16px',
@@ -174,18 +174,18 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           <SafetyOutlined style={{ fontSize: collapsed ? '32px' : '28px', marginRight: collapsed ? 0 : '12px' }} />
           {!collapsed && <span>WorkSafe</span>}
         </div>
-        <Menu 
-          theme="dark" 
-          selectedKeys={selectedKeys} 
-          mode="inline" 
-          items={items} 
-          onClick={handleMenuClick} 
+        <Menu
+          theme="dark"
+          selectedKeys={selectedKeys}
+          mode="inline"
+          items={items}
+          onClick={handleMenuClick}
         />
       </Sider>
       <Layout>
-        <Header 
-          style={{ 
-            padding: '0 24px', 
+        <Header
+          style={{
+            padding: '0 24px',
             background: colorBgContainer,
             display: 'flex',
             alignItems: 'center',

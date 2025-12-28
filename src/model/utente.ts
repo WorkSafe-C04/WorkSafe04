@@ -7,7 +7,7 @@ export class Utente {
     password: string | undefined;
     ruolo: string | undefined;
     dataAssunzione: Date | undefined;
-} 
+}
 
 export class UtenteNoPass {
     matricola: string | undefined;

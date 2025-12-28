@@ -32,24 +32,24 @@ export const CreateRisorsaForm: React.FC<CreateRisorsaFormProps> = ({ onSuccess 
   return (
     <div style={{ padding: '10px 0' }}>
       <Form form={form} layout="vertical" onFinish={onFinish}>
-        <Form.Item 
-          name="nome" 
-          label={<span style={{ fontWeight: '600', fontSize: '15px' }}>📝 Nome</span>} 
+        <Form.Item
+          name="nome"
+          label={<span style={{ fontWeight: '600', fontSize: '15px' }}>📝 Nome</span>}
           rules={[{ required: true, message: 'Inserisci il nome della risorsa' }]}
         >
-          <Input 
-            size="large" 
-            placeholder="Es: Trapano industriale" 
+          <Input
+            size="large"
+            placeholder="Es: Trapano industriale"
             style={{ borderRadius: '10px' }}
           />
         </Form.Item>
-        <Form.Item 
-          name="tipo" 
-          label={<span style={{ fontWeight: '600', fontSize: '15px' }}>🏷️ Tipo</span>} 
+        <Form.Item
+          name="tipo"
+          label={<span style={{ fontWeight: '600', fontSize: '15px' }}>🏷️ Tipo</span>}
           rules={[{ required: true, message: 'Seleziona il tipo di risorsa' }]}
         >
-          <Select 
-            size="large" 
+          <Select
+            size="large"
             placeholder="Seleziona una categoria"
             style={{ borderRadius: '10px' }}
           >
@@ -58,25 +58,25 @@ export const CreateRisorsaForm: React.FC<CreateRisorsaFormProps> = ({ onSuccess 
             <Option value="DPI">🦺 DPI (Dispositivi di Protezione)</Option>
           </Select>
         </Form.Item>
-        <Form.Item 
-          name="descrizione" 
+        <Form.Item
+          name="descrizione"
           label={<span style={{ fontWeight: '600', fontSize: '15px' }}>📄 Descrizione</span>}
         >
-          <TextArea 
-            rows={4} 
+          <TextArea
+            rows={4}
             placeholder="Aggiungi dettagli sulla risorsa..."
             style={{ borderRadius: '10px' }}
           />
         </Form.Item>
-        <Form.Item 
-          name="upload" 
+        <Form.Item
+          name="upload"
           label={<span style={{ fontWeight: '600', fontSize: '15px' }}>📎 Scheda Tecnica</span>}
-          valuePropName="fileList" 
+          valuePropName="fileList"
           getValueFromEvent={normFile}
         >
           <Upload maxCount={1} beforeUpload={() => false} listType="picture">
-            <Button 
-              icon={<UploadOutlined />} 
+            <Button
+              icon={<UploadOutlined />}
               size="large"
               style={{ borderRadius: '10px' }}
             >
@@ -84,10 +84,10 @@ export const CreateRisorsaForm: React.FC<CreateRisorsaFormProps> = ({ onSuccess 
             </Button>
           </Upload>
         </Form.Item>
-        <Button 
-          type="primary" 
-          htmlType="submit" 
-          loading={loading} 
+        <Button
+          type="primary"
+          htmlType="submit"
+          loading={loading}
           block
           size="large"
           style={{

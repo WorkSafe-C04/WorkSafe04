@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { verifyToken, TokenPayload } from './auth';
 
 export interface AuthenticatedRequest {
-  user: TokenPayload;
+    user: TokenPayload;
 }
 
 /**
@@ -11,46 +11,46 @@ export interface AuthenticatedRequest {
  * @returns I dati dell'utente o null se non autenticato
  */
 export function authenticateRequest(request: NextRequest | Request): TokenPayload | null {
-  try {
-    // Prova a ottenere il token dai cookie
-    let token: string | undefined;
-    
-    if ('cookies' in request) {
-      // NextRequest
-      token = request.cookies.get('auth-token')?.value;
-    } else {
-      // Standard Request
-      const cookieHeader = request.headers.get('cookie');
-      if (cookieHeader) {
-        const cookies = Object.fromEntries(
-          cookieHeader.split('; ').map(c => {
-            const [key, ...v] = c.split('=');
-            return [key, v.join('=')];
-          })
-        );
-        token = cookies['auth-token'];
-      }
-    }
+    try {
+        // Prova a ottenere il token dai cookie
+        let token: string | undefined;
 
-    // Se non c'è token nei cookie, prova nell'header Authorization
-    if (!token) {
-      const authHeader = request.headers.get('authorization');
-      if (authHeader?.startsWith('Bearer ')) {
-        token = authHeader.substring(7);
-      }
-    }
+        if ('cookies' in request) {
+            // NextRequest
+            token = request.cookies.get('auth-token')?.value;
+        } else {
+            // Standard Request
+            const cookieHeader = request.headers.get('cookie');
+            if (cookieHeader) {
+                const cookies = Object.fromEntries(
+                    cookieHeader.split('; ').map(c => {
+                        const [key, ...v] = c.split('=');
+                        return [key, v.join('=')];
+                    })
+                );
+                token = cookies['auth-token'];
+            }
+        }
 
-    if (!token) {
-      return null;
-    }
+        // Se non c'è token nei cookie, prova nell'header Authorization
+        if (!token) {
+            const authHeader = request.headers.get('authorization');
+            if (authHeader?.startsWith('Bearer ')) {
+                token = authHeader.substring(7);
+            }
+        }
 
-    // Verifica il token
-    const payload = verifyToken(token);
-    return payload;
-  } catch (error) {
-    console.error('Errore nell\'autenticazione:', error);
-    return null;
-  }
+        if (!token) {
+            return null;
+        }
+
+        // Verifica il token
+        const payload = verifyToken(token);
+        return payload;
+    } catch (error) {
+        console.error('Errore nell\'autenticazione:', error);
+        return null;
+    }
 }
 
 /**
@@ -60,23 +60,23 @@ export function authenticateRequest(request: NextRequest | Request): TokenPayloa
  * @returns I dati dell'utente o null
  */
 export function authorizeRequest(
-  request: NextRequest | Request,
-  allowedRoles?: string[]
+    request: NextRequest | Request,
+    allowedRoles?: string[]
 ): TokenPayload | null {
-  const user = authenticateRequest(request);
-  
-  if (!user) {
-    return null;
-  }
+    const user = authenticateRequest(request);
 
-  // Se sono specificati ruoli permessi, verifica che l'utente abbia uno di quelli
-  if (allowedRoles && allowedRoles.length > 0) {
-    if (!allowedRoles.includes(user.ruolo)) {
-      return null;
+    if (!user) {
+        return null;
     }
-  }
 
-  return user;
+    // Se sono specificati ruoli permessi, verifica che l'utente abbia uno di quelli
+    if (allowedRoles && allowedRoles.length > 0) {
+        if (!allowedRoles.includes(user.ruolo)) {
+            return null;
+        }
+    }
+
+    return user;
 }
 
 /**
@@ -86,7 +86,7 @@ export function authorizeRequest(
  * if (!user) return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
  */
 export function requireAuth(request: NextRequest | Request): TokenPayload | null {
-  return authenticateRequest(request);
+    return authenticateRequest(request);
 }
 
 /**
@@ -96,8 +96,8 @@ export function requireAuth(request: NextRequest | Request): TokenPayload | null
  * if (!user) return NextResponse.json({ error: 'Non autorizzato' }, { status: 403 });
  */
 export function requireRole(
-  request: NextRequest | Request,
-  allowedRoles: string[]
+    request: NextRequest | Request,
+    allowedRoles: string[]
 ): TokenPayload | null {
-  return authorizeRequest(request, allowedRoles);
+    return authorizeRequest(request, allowedRoles);
 }

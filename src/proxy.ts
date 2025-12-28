@@ -7,10 +7,10 @@ const PUBLIC_PAGES = ['/auth/login', '/auth/register'];
 
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   // Ottieni il token dai cookie
   const token = request.cookies.get('auth-token')?.value;
-  
+
   // Se la pagina è pubblica, consenti l'accesso
   if (PUBLIC_PAGES.some(page => pathname.startsWith(page))) {
     // Se l'utente è già autenticato e cerca di accedere al login, reindirizza alla home
@@ -19,13 +19,13 @@ export default function proxy(request: NextRequest) {
     }
     return NextResponse.next();
   }
-  
+
   // Per tutte le altre pagine, verifica il token
   if (!token) {
     // Nessun token, reindirizza al login
     return NextResponse.redirect(new URL('/auth/login', request.url));
   }
-  
+
   // Verifica la validità del token
   const payload = verifyToken(token);
   if (!payload) {
@@ -34,7 +34,7 @@ export default function proxy(request: NextRequest) {
     response.cookies.delete('auth-token');
     return response;
   }
-  
+
   // Token valido, consenti l'accesso
   return NextResponse.next();
 }

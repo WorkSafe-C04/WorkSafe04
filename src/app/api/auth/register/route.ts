@@ -6,8 +6,8 @@ import { UtenteNoPass } from '@/model/utente';
 export async function POST(request: Request): Promise<Response> {
     try {
         const body = await request.json();
-        
-        const {matricola, nome, cognome, dataNascita, email, password, ruolo, dataAssunzione} = body;
+
+        const { matricola, nome, cognome, dataNascita, email, password, ruolo, dataAssunzione } = body;
 
         if (!matricola || !email || !password) {
             return NextResponse.json({
@@ -39,7 +39,7 @@ export async function POST(request: Request): Promise<Response> {
                 email,
                 password: hashedPassword,
                 ruolo,
-                dataAssunzione: dataAssunzione ? new Date(dataAssunzione) : null 
+                dataAssunzione: dataAssunzione ? new Date(dataAssunzione) : null
             }
         });
 
