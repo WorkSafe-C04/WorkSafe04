@@ -7,4 +7,14 @@ export class Utente {
     password: string | undefined;
     ruolo: string | undefined;
     dataAssunzione: Date | undefined;
+} 
+
+export class UtenteNoPass {
+    matricola: string | undefined;
+    nome: string | undefined;
+    cognome: string | undefined;
+    dataNascita: Date | undefined;
+    email: string | undefined;
+    ruolo: string | undefined;
+    dataAssunzione: Date | undefined;
 }

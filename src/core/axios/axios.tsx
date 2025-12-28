@@ -6,12 +6,13 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Importante per inviare i cookie
 });
 
 // Request interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Aggiungi token se presente
+    //gestione token cn i cookie
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -31,9 +32,13 @@ axiosInstance.interceptors.response.use(
   (error) => {
     // Gestione errori globale
     if (error.response?.status === 401) {
-      // Redirect al login o refresh token
+      // Redirect al login
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      localStorage.removeItem('user');
+      window.location.href = '/auth/login';
+    } else if (error.response?.status === 403) {
+      // Accesso negato - permessi insufficienti
+      console.error('Accesso negato: permessi insufficienti');
     }
     return Promise.reject(error);
   }

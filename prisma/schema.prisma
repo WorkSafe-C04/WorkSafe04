@@ -103,7 +103,7 @@ model Utente {
   nome               String?              @db.VarChar
   cognome            String?              @db.VarChar
   dataNascita        DateTime?            @db.Date
-  email              String?              @db.VarChar
+  email              String?              @unique @db.VarChar
   password           String?              @db.VarChar
   ruolo              String?              @db.VarChar
   dataAssunzione     DateTime?            @db.Date
