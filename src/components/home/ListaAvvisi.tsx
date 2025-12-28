@@ -1,10 +1,22 @@
 'use client';
 
 import { useAvvisi } from '@/hook/avvisoHook';
-import { Card, Tag, Spin, Alert } from 'antd';
+import { Card, Spin, Alert, Button, Modal } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import { CreateAvvisoForm } from '@/components/avvisi/createAvvisoForm';
+import { useState } from 'react';
 
 export default function ListaAvvisi() {
-  const { data, loading, error } = useAvvisi();
+  const { data, loading, error, refetch } = useAvvisi();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleOpenModal = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
+  
+  const handleSuccess = () => {
+    handleCloseModal();
+    refetch();
+  };
 
   if (loading) return <div className="p-10"><Spin size="large" /></div>;
 
@@ -12,12 +24,29 @@ export default function ListaAvvisi() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Lista Avvisi</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <h1 className="text-2xl font-bold">Lista Avvisi</h1>
+        <Button 
+          type="primary" 
+          icon={<PlusOutlined />} 
+          size="large"
+          onClick={handleOpenModal}
+          style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            border: 'none',
+            borderRadius: '10px',
+            fontWeight: '600',
+            boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+          }}
+        >
+          Crea Avviso
+        </Button>
+      </div>
 
       <div className="grid gap-4">
         {data.map((avviso) => (
           <Card key={avviso.id} title={avviso.titolo} variant="outlined">
-            <p className="text-gray-600 mb-2">{avviso.contenuto}</p>
+            <p className="text-gray-600 mb-2">{avviso.descrizione}</p>
             <div className="flex justify-between items-center mt-4">
               <span className="text-xs text-gray-400">
                 {avviso.dataCreazione ? new Date(avviso.dataCreazione).toLocaleDateString() : 'N/A'}
@@ -26,6 +55,16 @@ export default function ListaAvvisi() {
           </Card>
         ))}
       </div>
+
+      <Modal
+        title="Crea Nuovo Avviso"
+        open={isModalOpen}
+        onCancel={handleCloseModal}
+        footer={null}
+        width={600}
+      >
+        <CreateAvvisoForm onSuccess={handleSuccess} />
+      </Modal>
     </div>
   );
 }

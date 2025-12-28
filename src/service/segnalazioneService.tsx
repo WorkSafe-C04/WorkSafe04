@@ -3,7 +3,6 @@ import { Segnalazione } from '@/model/segnalazione';
 
 export const SegnalazioneService = {
   getSegnalazioni: async (): Promise<Segnalazione[]> => {
-
     const rawData = await SegnalazioneRepository.getAll();
 
     return rawData.map((item: any) => ({
@@ -14,6 +13,7 @@ export const SegnalazioneService = {
       matricola: item.matricola,
       dataCreazione: item.dataCreazione,
       stato: item.stato,
+      allegati: item.allegati,
     }));
   }
 };

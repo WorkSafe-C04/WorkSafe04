@@ -14,19 +14,40 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-
     const segnalazioni = await prisma.segnalazione.findMany({
+      include: {
+        Allegato: true
+      },
       orderBy: {
         dataCreazione: 'desc'
       },
     });
+    
+    const segnalazioniConAllegati = segnalazioni.map(segnalazione => {
+      const allegatiBase64 = segnalazione.Allegato.map(allegato => {
+        if (!allegato.contenuto || allegato.contenuto.length === 0) {
+          return null;
+        }
+        
+        const base64 = Buffer.from(allegato.contenuto).toString('base64');
+        return `data:image/jpeg;base64,${base64}`;
+      }).filter(Boolean);
 
-    const serializedSegnalazioni = JSON.parse(JSON.stringify(segnalazioni, (key, value) =>
-      typeof value === 'bigint' ? value.toString() : value
-    ));
+      return {
+        id: segnalazione.id.toString(),
+        titolo: segnalazione.titolo,
+        descrizione: segnalazione.descrizione,
+        risorsa: segnalazione.risorsa?.toString(),
+        matricola: segnalazione.matricola,
+        dataCreazione: segnalazione.dataCreazione,
+        stato: segnalazione.stato,
+        allegati: allegatiBase64
+      };
+    });
 
-    return NextResponse.json(serializedSegnalazioni);
+    return NextResponse.json(segnalazioniConAllegati);
   } catch (error) {
+
     return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }

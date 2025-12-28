@@ -13,7 +13,7 @@ export const avvisoService = {
             const avviso = new Avviso();
             avviso.id = item.id;
             avviso.titolo = item.titolo;
-            avviso.contenuto = item.contenuto;
+            avviso.descrizione = item.descrizione;
             avviso.dataCreazione = item.dataCreazione;
             avviso.matricola = item.matricola;
             return avviso;
