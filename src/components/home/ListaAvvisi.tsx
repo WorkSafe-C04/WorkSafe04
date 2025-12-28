@@ -4,11 +4,40 @@ import { useAvvisi } from '@/hook/avvisoHook';
 import { Card, Spin, Alert, Button, Modal } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { CreateAvvisoForm } from '@/components/avvisi/createAvvisoForm';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function ListaAvvisi() {
   const { data, loading, error, refetch } = useAvvisi();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [userData, setUserData] = useState<{ matricola?: string } | null>(null);
+
+  // Carica dati utente
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        setUserData(JSON.parse(userStr));
+      } catch (error) {
+        console.error('Errore nel parsing dei dati utente:', error);
+      }
+    }
+  }, []);
+
+  // Marca tutti gli avvisi come letti quando il componente viene montato
+  useEffect(() => {
+    const matricola = userData?.matricola;
+    if (!matricola || !data || data.length === 0) return;
+
+    const avvisiLettiStr = localStorage.getItem(`avvisiLetti_${matricola}`);
+    const avvisiLetti: string[] = avvisiLettiStr ? JSON.parse(avvisiLettiStr) : [];
+    
+    const allAvvisiIds = data
+      .filter((avviso: any) => avviso.matricola !== matricola)
+      .map((avviso: any) => avviso.id);
+    
+    const updatedAvvisiLetti = [...new Set([...avvisiLetti, ...allAvvisiIds])];
+    localStorage.setItem(`avvisiLetti_${matricola}`, JSON.stringify(updatedAvvisiLetti));
+  }, [data, userData]);
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);

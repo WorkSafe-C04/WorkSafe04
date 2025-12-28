@@ -53,7 +53,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const [userData, setUserData] = useState<{ nome?: string; cognome?: string; email?: string } | null>(null);
+  const [userData, setUserData] = useState<{ nome?: string; cognome?: string; email?: string; matricola?: string } | null>(null);
+  const [avvisi, setAvvisi] = useState<any[]>([]);
+  const [avvisiNonLetti, setAvvisiNonLetti] = useState<any[]>([]);
+  const [badgeCount, setBadgeCount] = useState(0);
   const { logout, loading: logoutLoading } = useLogout();
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -90,6 +93,87 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     }
   }, []);
 
+  // Carica gli avvisi e calcola i non letti
+  const loadAvvisi = async () => {
+    try {
+      const response = await fetch('/api/avvisi', {
+        credentials: 'include',
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAvvisi(data);
+        
+        // Ottieni la lista degli avvisi già letti
+        const matricola = userData?.matricola;
+        if (matricola) {
+          const avvisiLettiStr = localStorage.getItem(`avvisiLetti_${matricola}`);
+          const avvisiLetti: string[] = avvisiLettiStr ? JSON.parse(avvisiLettiStr) : [];
+          
+          // Filtra solo gli avvisi NON creati dall'utente e NON letti
+          const nonLetti = data.filter((avviso: any) => 
+            avviso.matricola !== matricola && !avvisiLetti.includes(avviso.id)
+          );
+          
+          setAvvisiNonLetti(nonLetti);
+          setBadgeCount(nonLetti.length);
+        }
+      }
+    } catch (error) {
+      console.error('Errore nel caricamento degli avvisi:', error);
+    }
+  };
+
+  // Carica gli avvisi quando l'utente è disponibile
+  useEffect(() => {
+    if (userData?.matricola) {
+      loadAvvisi();
+      // Ricarica ogni 30 secondi
+      const interval = setInterval(loadAvvisi, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [userData]);
+
+  // Funzione per marcare un avviso come letto
+  const markAvvisoAsRead = (avvisoId: string) => {
+    const matricola = userData?.matricola;
+    if (!matricola) return;
+
+    const avvisiLettiStr = localStorage.getItem(`avvisiLetti_${matricola}`);
+    const avvisiLetti: string[] = avvisiLettiStr ? JSON.parse(avvisiLettiStr) : [];
+    
+    if (!avvisiLetti.includes(avvisoId)) {
+      avvisiLetti.push(avvisoId);
+      localStorage.setItem(`avvisiLetti_${matricola}`, JSON.stringify(avvisiLetti));
+      loadAvvisi(); // Ricarica per aggiornare il badge
+    }
+  };
+
+  // Funzione per marcare tutti gli avvisi come letti
+  const markAllAvvisiAsRead = () => {
+    const matricola = userData?.matricola;
+    if (!matricola) return;
+
+    const avvisiLettiStr = localStorage.getItem(`avvisiLetti_${matricola}`);
+    const avvisiLetti: string[] = avvisiLettiStr ? JSON.parse(avvisiLettiStr) : [];
+    
+    const allAvvisiIds = avvisi
+      .filter((avviso: any) => avviso.matricola !== matricola)
+      .map((avviso: any) => avviso.id);
+    
+    const updatedAvvisiLetti = [...new Set([...avvisiLetti, ...allAvvisiIds])];
+    localStorage.setItem(`avvisiLetti_${matricola}`, JSON.stringify(updatedAvvisiLetti));
+    
+    setAvvisiNonLetti([]);
+    setBadgeCount(0);
+  };
+
+  // Azzera il badge quando si entra nella sezione avvisi
+  useEffect(() => {
+    if (pathname === '/home' && badgeCount > 0) {
+      markAllAvvisiAsRead();
+    }
+  }, [pathname]);
+
   const handleMenuClick = (e: any) => {
     const routeMap: Record<string, string> = {
       '1': '/home',
@@ -105,6 +189,32 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       router.push(path);
     }
   };
+
+  const notificationMenuItems: MenuProps['items'] = avvisiNonLetti.length > 0
+    ? avvisiNonLetti.map((avviso) => ({
+        key: avviso.id,
+        label: (
+          <div style={{ maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <BellOutlined style={{ marginRight: '8px' }} />
+            {avviso.titolo}
+          </div>
+        ),
+        onClick: () => {
+          markAvvisoAsRead(avviso.id);
+          router.push('/home');
+        },
+      }))
+    : [
+        {
+          key: 'empty',
+          label: (
+            <div style={{ textAlign: 'center', color: '#999', padding: '8px' }}>
+              Nessuna nuova notifica
+            </div>
+          ),
+          disabled: true,
+        },
+      ];
 
   const userMenuItems: MenuProps['items'] = [
     {
@@ -197,9 +307,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             Sistema di Gestione Sicurezza sul Lavoro
           </div>
           <Space size="large">
-            <Badge count={3} size="small">
-              <BellOutlined style={{ fontSize: '20px', cursor: 'pointer', color: '#595959' }} />
-            </Badge>
+            <Dropdown menu={{ items: notificationMenuItems }} placement="bottomRight" trigger={['click']}>
+              <Badge count={badgeCount} size="small">
+                <BellOutlined style={{ fontSize: '20px', cursor: 'pointer', color: '#595959' }} />
+              </Badge>
+            </Dropdown>
             <Dropdown menu={{ items: userMenuItems, onClick: handleUserMenuClick }} placement="bottomRight">
               <Space style={{ cursor: 'pointer' }}>
                 <Avatar style={{ backgroundColor: '#1890ff' }}>
