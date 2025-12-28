@@ -28,7 +28,7 @@ export const CreateAvvisoForm: React.FC<CreateAvvisoFormProps> = ({ onSuccess })
         <div style={{ padding: '10px 0' }}>
             <Form form={form} layout="vertical" onFinish={onFinish}>
                 <Form.Item
-                    name="nome"
+                    name="titolo"
                     label={<span style={{ fontWeight: '600', fontSize: '15px' }}>📝 Titolo</span>}
                     rules={[{ required: true, message: 'Inserisci il titolo dell avviso' }]}
                 >
@@ -39,7 +39,7 @@ export const CreateAvvisoForm: React.FC<CreateAvvisoFormProps> = ({ onSuccess })
                     />
                 </Form.Item>
                 <Form.Item
-                    name="descrizione"
+                    name="contenuto"
                     label={<span style={{ fontWeight: '600', fontSize: '15px' }}>📄 Descrizione</span>}
                 >
                     <TextArea
@@ -66,7 +66,7 @@ export const CreateAvvisoForm: React.FC<CreateAvvisoFormProps> = ({ onSuccess })
                         marginTop: '10px'
                     }}
                 >
-                    🚀 Crea Risorsa
+                    🚀 Crea Avviso
                 </Button>
             </Form>
         </div>

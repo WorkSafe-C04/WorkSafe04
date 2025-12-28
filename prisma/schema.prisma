@@ -127,7 +127,7 @@ model VideoCorso {
 model Avviso {
   id            BigInt    @id @default(autoincrement())
   titolo        String    @db.VarChar
-  descrizione   Bytes?
+  descrizione   String?
   dataCreazione DateTime? @default(now()) @db.Date
   matricola     String?   @db.VarChar
   Utente        Utente?   @relation(fields: [matricola], references: [matricola], onDelete: NoAction, onUpdate: NoAction)
