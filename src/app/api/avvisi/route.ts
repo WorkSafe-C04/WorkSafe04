@@ -3,7 +3,9 @@ import prisma from '@/core/db/prisma'
 
 export async function GET() {
   try {
-    const avvisi = await prisma.avviso.findMany()
+    const avvisi = await prisma.avviso.findMany({
+      orderBy: { id: 'desc' },
+    })
 
     const serializedAvvisi = JSON.parse(JSON.stringify(avvisi, (key, value) =>
       typeof value === 'bigint' ? value.toString() : value
@@ -36,6 +38,7 @@ export async function POST(request: Request) {
         titolo,
         descrizione: contenuto || null,
         matricola,
+        dataCreazione: dataCreazione ? new Date(dataCreazione) : new Date(), // salva anche ora
       },
     })
 
