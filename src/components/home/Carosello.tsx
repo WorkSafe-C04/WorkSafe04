@@ -18,7 +18,7 @@ const contentStyle: React.CSSProperties = {
 
 const Carosello: React.FC = () => {
   return (
-    <Carousel autoplay autoplaySpeed={5000} dotPosition="bottom">
+    <Carousel autoplay autoplaySpeed={5000} dotPlacement="bottom">
       <div>
         <div style={{ ...contentStyle, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
           <SafetyOutlined style={{ fontSize: '80px', marginBottom: '20px' }} />
