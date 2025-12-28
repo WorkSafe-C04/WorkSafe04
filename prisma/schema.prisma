@@ -107,6 +107,7 @@ model Utente {
   password           String?              @db.VarChar
   ruolo              String?              @db.VarChar
   dataAssunzione     DateTime?            @db.Date
+  Avviso             Avviso[]
   GestioneFormazione GestioneFormazione[]
   GestioneRisorsa    GestioneRisorsa[]
   Segnalazione       Segnalazione[]
@@ -121,4 +122,13 @@ model VideoCorso {
   url         String      @db.VarChar
   formazione  BigInt?
   Formazione  Formazione? @relation(fields: [formazione], references: [id], onDelete: NoAction)
+}
+
+model Avviso {
+  id            BigInt    @id @default(autoincrement())
+  titolo        String    @db.VarChar
+  descrizione   String?
+  dataCreazione DateTime? @default(now()) @db.Date
+  matricola     String?   @db.VarChar
+  Utente        Utente?   @relation(fields: [matricola], references: [matricola], onDelete: NoAction, onUpdate: NoAction)
 }
