@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Solo DatoreDiLavoro e ResponsabileSicurezza possono creare risorse
-  if (!['DatoreDiLavoro', 'ResponsabileSicurezza'].includes(user.ruolo)) {
+  if (!['DatoreDiLavoro', 'ResponsabileSicurezza', 'Datore Di lavoro'].includes(user.ruolo)) {
     return NextResponse.json(
       { error: 'Permessi insufficienti. Solo DatoreDiLavoro e ResponsabileSicurezza possono creare risorse.' },
       { status: 403 }
