@@ -201,7 +201,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         ),
         onClick: () => {
           markAvvisoAsRead(avviso.id);
-          router.push('/home');
+          localStorage.setItem('avvisoToScroll', avviso.id);
+          router.push(`/home?tab=avvisi&avvisoId=${avviso.id}`);
         },
       }))
     : [

@@ -74,7 +74,7 @@ export default function ListaAvvisi() {
 
       <div className="grid gap-4">
         {data.map((avviso) => (
-          <Card key={avviso.id} title={avviso.titolo} variant="outlined">
+          <Card key={avviso.id} id={`avviso-${avviso.id}`} title={avviso.titolo} variant="outlined">
             <p className="text-gray-600 mb-2">{avviso.descrizione}</p>
             <div className="flex justify-between items-center mt-4">
               <span className="text-xs text-gray-400">
