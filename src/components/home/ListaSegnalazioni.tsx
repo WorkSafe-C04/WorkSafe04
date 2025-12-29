@@ -1,7 +1,7 @@
 'use client';
 
 import { useSegnalazioni } from '@/hook/segnalazioniHook';
-import { Card, Tag, Spin, Alert, Empty, Row, Col, Space, Badge, Descriptions, Button, Modal, Divider, Input, DatePicker } from 'antd';
+import { Card, Tag, Spin, Alert, Empty, Row, Col, Space, Badge, Descriptions, Button, Modal, Divider, Input, DatePicker, Select } from 'antd';
 import {
   WarningOutlined,
   CheckCircleOutlined,
@@ -27,27 +27,41 @@ export default function ListaSegnalazioni() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [filterTitolo, setFilterTitolo] = useState('');
-  const [filterRisorsa, setFilterRisorsa] = useState(''); 
+  const [filterRisorsa, setFilterRisorsa] = useState<string | null>(null); 
   const [filterDate, setFilterDate] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null);
+
+  const resourceOptions = useMemo(() => {
+    if (!data || data.length === 0) return [];
+    
+    const names = data
+      .map(item => {
+        const r = item.Risorsa || (item as any).Risorsa;
+        return r?.nome;
+      })
+      .filter(name => name !== undefined && name !== null && name !== '');
+    
+    const uniqueNames = [...new Set(names)];
+    
+    return uniqueNames.sort().map(name => ({ label: name, value: name }));
+  }, [data]);
 
   const filteredData = useMemo(() => {
     if (!data) return [];
 
     return data.filter(item => {
-      // 1. Filtro per Titolo
+      // Filtro Titolo
       const titoloMatch = (item.titolo || '').toLowerCase().includes(filterTitolo.toLowerCase());
 
-      // 2. Filtro per Risorsa
-      
-      const testoDaCercare = filterRisorsa.toLowerCase().trim();
-      
-      const risorsaObj = item.Risorsa || (item as any).Risorsa; 
-      const nomeRisorsa = (risorsaObj?.nome || '').toLowerCase();
-      const idRisorsa = (item.risorsa?.toString() || '').toLowerCase();
-      
-      const risorsaMatch = nomeRisorsa.includes(testoDaCercare) || idRisorsa.includes(testoDaCercare);
+      // Filtro Risorsa (Logica per la Tendina)
+      let risorsaMatch = true;
+      if (filterRisorsa) {
 
-      // 3. Filtro per Data
+          const rObj = item.Risorsa || (item as any).Risorsa;
+          const nomeRisorsa = rObj?.nome || '';
+          
+          risorsaMatch = nomeRisorsa === filterRisorsa;
+      }
+
       let dateMatch = true;
       if (filterDate && item.dataCreazione) {
         const itemDate = dayjs(item.dataCreazione);
@@ -62,7 +76,7 @@ export default function ListaSegnalazioni() {
 
   const resetFilters = () => {
     setFilterTitolo('');
-    setFilterRisorsa('');
+    setFilterRisorsa(null); 
     setFilterDate(null);
   };
 
@@ -105,11 +119,10 @@ export default function ListaSegnalazioni() {
       <div style={{ marginBottom: '24px' }}>
         <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px' }}>Segnalazioni</h2>
         
-        {/*  BARRA DEI FILTRI  */}
         <Card size="small" style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
           <Row gutter={[16, 16]} align="middle">
             
-            {/* Titolo */}
+            {/* Filtro per Titolo */}
             <Col xs={24} md={8}>
               <div style={{ marginBottom: 4, fontSize: 12, color: '#888' }}>Cerca nel titolo</div>
               <Input
@@ -121,19 +134,24 @@ export default function ListaSegnalazioni() {
               />
             </Col>
             
-            {/* Risorsa */}
+            {/* Filtro per Risorsa */}
             <Col xs={24} md={8}>
-              <div style={{ marginBottom: 4, fontSize: 12, color: '#888' }}>Cerca Risorsa</div>
-              <Input
-                placeholder="Nome o ID..." 
-                prefix={<FolderOutlined style={{ color: '#bfbfbf' }} />}
-                value={filterRisorsa}
-                onChange={e => setFilterRisorsa(e.target.value)}
+              <div style={{ marginBottom: 4, fontSize: 12, color: '#888' }}>Seleziona Risorsa</div>
+              <Select
+                style={{ width: '100%' }}
+                placeholder="Scegli dalla lista..."
                 allowClear
+                showSearch 
+                options={resourceOptions} 
+                value={filterRisorsa}
+                onChange={setFilterRisorsa}
+                optionFilterProp="label" 
+                filterOption={(input, option) =>
+                  (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                }
               />
             </Col>
 
-            {/* Data */}
             <Col xs={24} md={6}>
               <div style={{ marginBottom: 4, fontSize: 12, color: '#888' }}>Data Creazione</div>
               <RangePicker 
@@ -145,7 +163,6 @@ export default function ListaSegnalazioni() {
               />
             </Col>
 
-            {/* Reset */}
             <Col xs={24} md={2} style={{ textAlign: 'right', display: 'flex', alignItems: 'flex-end' }}>
               <Button 
                 icon={<ClearOutlined />} 
@@ -160,7 +177,6 @@ export default function ListaSegnalazioni() {
         </Card>
       </div>
 
-      {}
       {(!filteredData || filteredData.length === 0) ? (
         <Empty
           description="Nessuna segnalazione trovata con i filtri selezionati"
@@ -235,7 +251,6 @@ export default function ListaSegnalazioni() {
         </Row>
       )}
 
-      {}
       <Modal
         title={<Space><WarningOutlined style={{ color: '#ff4d4f' }} /> {selectedSegnalazione?.titolo}</Space>}
         open={isModalOpen}
@@ -253,6 +268,7 @@ export default function ListaSegnalazioni() {
             <Descriptions column={{ xs: 1, sm: 2 }} bordered size="small">
               <Descriptions.Item label="Matricola">{selectedSegnalazione.matricola || 'N/D'}</Descriptions.Item>
               <Descriptions.Item label="Risorsa">
+
                  {(() => {
                     const rObj = selectedSegnalazione.Risorsa || (selectedSegnalazione as any).Risorsa;
                     return rObj?.nome 
