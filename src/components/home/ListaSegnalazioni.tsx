@@ -1,7 +1,24 @@
 'use client';
 
 import { useSegnalazioni } from '@/hook/segnalazioniHook';
-import { Card, Tag, Spin, Alert, Empty, Row, Col, Space, Badge, Descriptions, Image, Button, Modal, Divider } from 'antd';
+import {
+  Card,
+  Tag,
+  Spin,
+  Alert,
+  Empty,
+  Row,
+  Col,
+  Space,
+  Badge,
+  Descriptions,
+  Image,
+  Button,
+  Modal,
+  Divider,
+  Select,
+  message
+} from 'antd';
 import {
   WarningOutlined,
   CheckCircleOutlined,
@@ -9,20 +26,122 @@ import {
   CalendarOutlined,
   FileTextOutlined,
   ExclamationCircleOutlined,
-  UserOutlined,
   IdcardOutlined,
   PaperClipOutlined,
   FolderOutlined,
-  DownloadOutlined,
   EyeOutlined
 } from '@ant-design/icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Segnalazione } from '@/model/segnalazione';
 
 export default function ListaSegnalazioni() {
   const { data, loading, error } = useSegnalazioni();
+
+  const [segnalazioni, setSegnalazioni] = useState<Segnalazione[]>([]);
   const [selectedSegnalazione, setSelectedSegnalazione] = useState<Segnalazione | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [updatingStato, setUpdatingStato] = useState(false);
+  const [statoDraft, setStatoDraft] = useState<string>('');
+
+  useEffect(() => {
+    if (data) setSegnalazioni(data);
+  }, [data]);
+
+  const getUserRuolo = () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      if (!userStr) return '';
+      const u = JSON.parse(userStr);
+      return (u?.ruolo || '').toString().toUpperCase();
+    } catch {
+      return '';
+    }
+  };
+
+  const isManutentore = getUserRuolo() === 'MANUTENTORE';
+
+  const getStatoConfig = (stato?: string) => {
+    const s = (stato || '').toString().toUpperCase();
+
+    switch (s) {
+      case 'APERTA':
+        return { color: 'red', icon: <ExclamationCircleOutlined />, text: 'Aperta' };
+      case 'IN_CORSO':
+        return { color: 'orange', icon: <ClockCircleOutlined />, text: 'In Corso' };
+      case 'RISOLTA':
+        return { color: 'green', icon: <CheckCircleOutlined />, text: 'Risolta' };
+      case 'CHIUSA':
+        return { color: 'blue', icon: <CheckCircleOutlined />, text: 'Chiusa' };
+      default:
+        return { color: 'default', icon: <FileTextOutlined />, text: stato || 'Sconosciuto' };
+    }
+  };
+
+  const patchStatoSegnalazione = async (idString: string, stato: string) => {
+    const res = await fetch(`/api/segnalazioni/${idString}/stato`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stato })
+    });
+
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload?.error || 'Errore aggiornamento stato');
+    return payload;
+  };
+
+  const handleUpdateStato = async () => {
+    if (!selectedSegnalazione) return;
+
+    const idString = selectedSegnalazione.id?.toString();
+    const newStato = (statoDraft || '').toUpperCase();
+
+    if (!idString) {
+      message.error('ID segnalazione non valido');
+      return;
+    }
+
+    if (!newStato) {
+      message.error('Seleziona uno stato');
+      return;
+    }
+
+    setUpdatingStato(true);
+
+    const prevSelected = selectedSegnalazione;
+    const prevList = segnalazioni;
+
+
+    setSelectedSegnalazione({ ...selectedSegnalazione, stato: newStato });
+    setSegnalazioni((list) =>
+      list.map((s) => (s.id?.toString() === idString ? { ...s, stato: newStato } : s))
+    );
+
+    try {
+      await patchStatoSegnalazione(idString, newStato);
+      message.success('Stato aggiornato');
+    } catch (e: unknown) {
+
+      setSelectedSegnalazione(prevSelected);
+      setSegnalazioni(prevList);
+
+      const msg = e instanceof Error ? e.message : 'Errore aggiornamento';
+      message.error(msg);
+    } finally {
+      setUpdatingStato(false);
+    }
+  };
+
+  const handleCardClick = (segnalazione: Segnalazione) => {
+    setSelectedSegnalazione(segnalazione);
+    setStatoDraft((segnalazione.stato || 'APERTA').toString().toUpperCase());
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedSegnalazione(null);
+  };
 
   if (loading) {
     return (
@@ -44,7 +163,7 @@ export default function ListaSegnalazioni() {
     );
   }
 
-  if (!data || data.length === 0) {
+  if (!segnalazioni || segnalazioni.length === 0) {
     return (
       <Empty
         description="Nessuna segnalazione presente"
@@ -54,68 +173,31 @@ export default function ListaSegnalazioni() {
     );
   }
 
-  const getStatoConfig = (stato?: string) => {
-    switch (stato) {
-      case 'APERTA':
-        return { color: 'red', icon: <ExclamationCircleOutlined />, text: 'Aperta' };
-      case 'IN_CORSO':
-        return { color: 'orange', icon: <ClockCircleOutlined />, text: 'In Corso' };
-      case 'RISOLTA':
-        return { color: 'green', icon: <CheckCircleOutlined />, text: 'Risolta' };
-      case 'CHIUSA':
-        return { color: 'blue', icon: <CheckCircleOutlined />, text: 'Chiusa' };
-      default:
-        return { color: 'default', icon: <FileTextOutlined />, text: stato || 'Sconosciuto' };
-    }
-  };
-
-  const getPrioritaColor = (priorita?: string) => {
-    switch (priorita) {
-      case 'ALTA': return 'red';
-      case 'MEDIA': return 'orange';
-      case 'BASSA': return 'green';
-      default: return 'default';
-    }
-  };
-
-  const handleCardClick = (segnalazione: Segnalazione) => {
-    setSelectedSegnalazione(segnalazione);
-    setIsModalOpen(true);
-  };
-
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-    setSelectedSegnalazione(null);
-  };
-
   return (
     <div>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '24px'
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '24px'
+        }}
+      >
         <Space direction="vertical" size={0}>
-          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '600' }}>
-            Segnalazioni Recenti
-          </h2>
+          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '600' }}>Segnalazioni Recenti</h2>
           <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>
-            Totale: {data.length} segnalazioni
+            Totale: {segnalazioni.length} segnalazioni
           </p>
         </Space>
       </div>
 
       <Row gutter={[16, 16]}>
-        {data.map((segnalazione) => {
+        {segnalazioni.map((segnalazione) => {
           const statoConfig = getStatoConfig(segnalazione.stato);
 
           return (
-            <Col xs={24} key={segnalazione.id}>
-              <Badge.Ribbon
-                text={statoConfig.text}
-                color={statoConfig.color}
-              >
+            <Col xs={24} key={segnalazione.id?.toString()}>
+              <Badge.Ribbon text={statoConfig.text} color={statoConfig.color}>
                 <Card
                   hoverable
                   onClick={() => handleCardClick(segnalazione)}
@@ -137,73 +219,58 @@ export default function ListaSegnalazioni() {
                   <Row gutter={16}>
                     <Col xs={24} md={16}>
                       <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: '12px'
-                        }}>
-                          <WarningOutlined style={{
-                            fontSize: '24px',
-                            color: '#ff4d4f',
-                            marginTop: '4px'
-                          }} />
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                          <WarningOutlined style={{ fontSize: '24px', color: '#ff4d4f', marginTop: '4px' }} />
                           <div style={{ flex: 1 }}>
-                            <h3 style={{
-                              margin: '0 0 8px 0',
-                              fontSize: '18px',
-                              fontWeight: '600',
-                              lineHeight: '1.4'
-                            }}>
+                            <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: '600', lineHeight: '1.4' }}>
                               {segnalazione.titolo}
                             </h3>
-                            <p style={{
-                              margin: 0,
-                              color: '#666',
-                              fontSize: '14px',
-                              lineHeight: '1.6',
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden'
-                            }}>
+                            <p
+                              style={{
+                                margin: 0,
+                                color: '#666',
+                                fontSize: '14px',
+                                lineHeight: '1.6',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden'
+                              }}
+                            >
                               {segnalazione.descrizione}
                             </p>
                           </div>
                         </div>
 
                         <Descriptions column={{ xs: 1, sm: 2 }} size="small">
-                          <Descriptions.Item 
-                            label={<><IdcardOutlined /> Matricola</>}
-                          >
+                          <Descriptions.Item label={<><IdcardOutlined /> Matricola</>}>
                             {segnalazione.matricola === 'Anonimo' ? (
                               <Tag color="orange">Anonimo</Tag>
                             ) : (
                               <span style={{ fontWeight: '500' }}>{segnalazione.matricola || 'N/D'}</span>
                             )}
                           </Descriptions.Item>
-                          <Descriptions.Item 
-                            label={<><CalendarOutlined /> Data</>}
-                          >
+                          <Descriptions.Item label={<><CalendarOutlined /> Data</>}>
                             {new Date(segnalazione.dataCreazione).toLocaleDateString('it-IT')}
                           </Descriptions.Item>
                         </Descriptions>
                       </Space>
                     </Col>
-                    
+
                     {segnalazione.allegati && segnalazione.allegati.length > 0 && (
                       <Col xs={24} md={8}>
-                        <div style={{
-                          borderLeft: '1px solid #f0f0f0',
-                          paddingLeft: '16px',
-                          textAlign: 'center'
-                        }}>
+                        <div
+                          style={{
+                            borderLeft: '1px solid #f0f0f0',
+                            paddingLeft: '16px',
+                            textAlign: 'center'
+                          }}
+                        >
                           <PaperClipOutlined style={{ fontSize: '32px', color: '#1890ff', marginBottom: '8px' }} />
                           <p style={{ margin: '0 0 8px 0', fontWeight: '600', color: '#333' }}>
                             {segnalazione.allegati.length} Allegato{segnalazione.allegati.length !== 1 ? 'i' : ''}
                           </p>
-                          <p style={{ margin: 0, color: '#999', fontSize: '12px' }}>
-                            Clicca per visualizzare
-                          </p>
+                          <p style={{ margin: 0, color: '#999', fontSize: '12px' }}>Clicca per visualizzare</p>
                         </div>
                       </Col>
                     )}
@@ -230,10 +297,14 @@ export default function ListaSegnalazioni() {
             Chiudi
           </Button>,
           selectedSegnalazione?.allegati && selectedSegnalazione.allegati.length > 0 && (
-            <Button key="view" type="primary" icon={<EyeOutlined />} onClick={() => {
-              // La preview è già disponibile nella modale
-              (document.querySelector('[aria-label="View"]') as HTMLElement)?.click();
-            }}>
+            <Button
+              key="view"
+              type="primary"
+              icon={<EyeOutlined />}
+              onClick={() => {
+                (document.querySelector('[aria-label="View"]') as HTMLElement)?.click();
+              }}
+            >
               Visualizza Allegati
             </Button>
           )
@@ -241,35 +312,27 @@ export default function ListaSegnalazioni() {
       >
         {selectedSegnalazione && (
           <Space direction="vertical" size="large" style={{ width: '100%' }}>
-            {/* Descrizione */}
             <div>
               <h4 style={{ marginBottom: '8px', fontWeight: '600' }}>Descrizione</h4>
-              <p style={{ margin: 0, color: '#666', lineHeight: '1.6' }}>
-                {selectedSegnalazione.descrizione}
-              </p>
+              <p style={{ margin: 0, color: '#666', lineHeight: '1.6' }}>{selectedSegnalazione.descrizione}</p>
             </div>
 
             <Divider style={{ margin: '12px 0' }} />
 
-            {/* Dettagli */}
             <Descriptions column={{ xs: 1, sm: 2 }} bordered size="small">
-              <Descriptions.Item 
-                label={<><IdcardOutlined /> Matricola</>}
-              >
+              <Descriptions.Item label={<><IdcardOutlined /> Matricola</>}>
                 {selectedSegnalazione.matricola === 'Anonimo' ? (
                   <Tag color="orange">Anonimo</Tag>
                 ) : (
                   <span style={{ fontWeight: '500' }}>{selectedSegnalazione.matricola || 'N/D'}</span>
                 )}
               </Descriptions.Item>
-              <Descriptions.Item 
-                label={<><FolderOutlined /> Risorsa</>}
-              >
+
+              <Descriptions.Item label={<><FolderOutlined /> Risorsa</>}>
                 <span style={{ fontWeight: '500' }}>ID: {selectedSegnalazione.risorsa}</span>
               </Descriptions.Item>
-              <Descriptions.Item 
-                label={<><CalendarOutlined /> Data Creazione</>}
-              >
+
+              <Descriptions.Item label={<><CalendarOutlined /> Data Creazione</>}>
                 {new Date(selectedSegnalazione.dataCreazione).toLocaleString('it-IT', {
                   day: '2-digit',
                   month: 'long',
@@ -278,37 +341,58 @@ export default function ListaSegnalazioni() {
                   minute: '2-digit'
                 })}
               </Descriptions.Item>
-              <Descriptions.Item 
-                label={<><FileTextOutlined /> Stato</>}
-              >
-                <Tag color={getStatoConfig(selectedSegnalazione.stato).color} icon={getStatoConfig(selectedSegnalazione.stato).icon}>
-                  {getStatoConfig(selectedSegnalazione.stato).text}
-                </Tag>
+
+              <Descriptions.Item label={<><FileTextOutlined /> Stato</>}>
+                {isManutentore ? (
+                  <Space>
+                    <Select
+                      value={statoDraft}
+                      style={{ width: 160 }}
+                      onChange={(v) => setStatoDraft(v)}
+                      options={[
+                        { value: 'APERTA', label: 'Aperta' },
+                        { value: 'IN_CORSO', label: 'In Corso' },
+                        { value: 'RISOLTA', label: 'Risolta' },
+                        { value: 'CHIUSA', label: 'Chiusa' }
+                      ]}
+                    />
+                    <Button
+                      type="primary"
+                      onClick={handleUpdateStato}
+                      loading={updatingStato}
+                      disabled={!selectedSegnalazione}
+                    >
+                      Aggiorna
+                    </Button>
+                  </Space>
+                ) : (
+                  <Tag
+                    color={getStatoConfig(selectedSegnalazione.stato).color}
+                    icon={getStatoConfig(selectedSegnalazione.stato).icon}
+                  >
+                    {getStatoConfig(selectedSegnalazione.stato).text}
+                  </Tag>
+                )}
               </Descriptions.Item>
             </Descriptions>
 
             <Divider style={{ margin: '12px 0' }} />
 
-            {/* Allegati */}
             {selectedSegnalazione.allegati && selectedSegnalazione.allegati.length > 0 && (
               <div>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  marginBottom: '16px'
-                }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                   <PaperClipOutlined style={{ fontSize: '18px', color: '#1890ff' }} />
-                  <h4 style={{ margin: 0, fontWeight: '600' }}>
-                    Allegati ({selectedSegnalazione.allegati.length})
-                  </h4>
+                  <h4 style={{ margin: 0, fontWeight: '600' }}>Allegati ({selectedSegnalazione.allegati.length})</h4>
                 </div>
+
                 <Image.PreviewGroup>
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-                    gap: '12px'
-                  }}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                      gap: '12px'
+                    }}
+                  >
                     {selectedSegnalazione.allegati.map((allegato, index) => (
                       <div key={index} style={{ position: 'relative' }}>
                         <Image
@@ -324,25 +408,14 @@ export default function ListaSegnalazioni() {
                           }}
                           preview={{
                             mask: (
-                              <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                color: 'white'
-                              }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'white' }}>
                                 <EyeOutlined style={{ fontSize: '16px' }} />
                                 <span>Visualizza</span>
                               </div>
                             )
                           }}
                         />
-                        <p style={{
-                          margin: '8px 0 0 0',
-                          fontSize: '12px',
-                          color: '#666',
-                          textAlign: 'center'
-                        }}>
+                        <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#666', textAlign: 'center' }}>
                           Allegato {index + 1}
                         </p>
                       </div>

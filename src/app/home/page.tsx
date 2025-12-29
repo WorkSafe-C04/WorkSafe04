@@ -1,78 +1,410 @@
 'use client';
-import Carosello from "@/components/home/Carosello";
-import ListaAvvisi from "@/components/home/ListaAvvisi";
-import ListaSegnalazioni from "@/components/home/ListaSegnalazioni";
-import { Tabs } from 'antd';
-import { BellOutlined, WarningOutlined } from '@ant-design/icons';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
 
-export default function HomePage() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const [activeTab, setActiveTab] = useState('1');
-  const tabsRef = useRef<any>(null);
-  const items = [
-    {
-      key: '1',
-      label: (
-        <span>
-          <WarningOutlined />
-          Segnalazioni
-        </span>
-      ),
-      children: <ListaSegnalazioni />,
-    },
-    {
-      key: '2',
-      label: (
-        <span>
-          <BellOutlined />
-          Avvisi
-        </span>
-      ),
-      children: <ListaAvvisi />,
-    },
-  ];
+import { useSegnalazioni } from '@/hook/segnalazioniHook';
+import { useUpdateSegnalazione } from '@/hook/useUpdateSegnalazione';
+import {
+  Card,
+  Tag,
+  Spin,
+  Alert,
+  Empty,
+  Row,
+  Col,
+  Space,
+  Badge,
+  Descriptions,
+  Image,
+  Button,
+  Modal,
+  Divider,
+  Select,
+  message
+} from 'antd';
+import {
+  WarningOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  CalendarOutlined,
+  FileTextOutlined,
+  ExclamationCircleOutlined,
+  IdcardOutlined,
+  PaperClipOutlined,
+  FolderOutlined,
+  EyeOutlined
+} from '@ant-design/icons';
+import { useMemo, useState } from 'react';
+import { Segnalazione } from '@/model/segnalazione';
 
-  useEffect(() => {
-    // Prima priorità: localStorage (click da notifica)
-    const avvisoToScroll = localStorage.getItem('avvisoToScroll');
-    if (avvisoToScroll) {
-      setActiveTab('2');
-      setTimeout(() => {
-        const el = document.getElementById(`avviso-${avvisoToScroll}`);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        localStorage.removeItem('avvisoToScroll');
-      }, 600);
+function normalizeRole(raw: unknown): string {
+  if (raw == null) return '';
+  return String(raw).trim().toUpperCase();
+}
+
+function isMaintenanceRole(role: string): boolean {
+  const r = normalizeRole(role);
+  return r === 'MANUTENTORE' || r === 'ROLE_MANUTENTORE' || r === 'MAINTAINER' || r === 'M';
+}
+
+export default function ListaSegnalazioni() {
+  const { data, loading, error } = useSegnalazioni();
+  const { updateStato, loading: updatingStato } = useUpdateSegnalazione();
+
+ 
+  const baseSegnalazioni = useMemo<Segnalazione[]>(() => (data ?? []), [data]);
+
+
+  const [localSegnalazioni, setLocalSegnalazioni] = useState<Segnalazione[] | null>(null);
+
+  const segnalazioni = localSegnalazioni ?? baseSegnalazioni;
+
+  const [selectedSegnalazione, setSelectedSegnalazione] = useState<Segnalazione | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [statoDraft, setStatoDraft] = useState<string>('');
+
+  const getUserRoleFromLocalStorage = (): string => {
+    try {
+      const userStr = localStorage.getItem('user');
+      if (!userStr) return '';
+      const u: unknown = JSON.parse(userStr);
+
+      if (typeof u === 'object' && u !== null) {
+        const obj = u as Record<string, unknown>;
+        const role = obj.ruolo ?? obj.role ?? obj.tipo ?? obj.tipoUtente ?? '';
+        return normalizeRole(role);
+      }
+      return '';
+    } catch {
+      return '';
+    }
+  };
+
+  const role = getUserRoleFromLocalStorage();
+  const isManutentore = isMaintenanceRole(role);
+
+  const getStatoConfig = (stato?: string) => {
+    const s = (stato || '').toString().trim().toUpperCase();
+
+    switch (s) {
+      case 'APERTA':
+        return { color: 'red', icon: <ExclamationCircleOutlined />, text: 'Aperta' };
+      case 'IN_CORSO':
+        return { color: 'orange', icon: <ClockCircleOutlined />, text: 'In Corso' };
+      case 'RISOLTA':
+        return { color: 'green', icon: <CheckCircleOutlined />, text: 'Risolta' };
+      case 'CHIUSA':
+        return { color: 'blue', icon: <CheckCircleOutlined />, text: 'Chiusa' };
+      default:
+        return { color: 'default', icon: <FileTextOutlined />, text: stato || 'Sconosciuto' };
+    }
+  };
+
+  const handleUpdateStato = async () => {
+    if (!selectedSegnalazione) return;
+
+    const idString = selectedSegnalazione.id?.toString();
+    const newStato = (statoDraft || '').toUpperCase();
+
+    if (!idString) {
+      message.error('ID segnalazione non valido');
       return;
     }
-    // Seconda priorità: query string
-    const tab = searchParams.get('tab');
-    const avvisoId = searchParams.get('avvisoId');
-    if (tab === 'avvisi') {
-      setActiveTab('2');
-      if (avvisoId) {
-        setTimeout(() => {
-          const el = document.getElementById(`avviso-${avvisoId}`);
-          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 600);
-      }
+
+    if (!newStato) {
+      message.error('Seleziona uno stato');
+      return;
     }
-  }, [searchParams]);
+
+    const prevSelected = selectedSegnalazione;
+
+
+    const currentList = localSegnalazioni ?? baseSegnalazioni;
+    const prevList = currentList;
+
+    setSelectedSegnalazione({ ...selectedSegnalazione, stato: newStato });
+    setLocalSegnalazioni(
+      currentList.map((s) => (s.id?.toString() === idString ? { ...s, stato: newStato } : s))
+    );
+
+    try {
+      await updateStato(idString, newStato);
+      message.success('Stato aggiornato');
+    } catch (e: unknown) {
+      setSelectedSegnalazione(prevSelected);
+      setLocalSegnalazioni(prevList);
+
+      const msg = e instanceof Error ? e.message : 'Errore aggiornamento';
+      message.error(msg);
+    }
+  };
+
+  const handleCardClick = (segnalazione: Segnalazione) => {
+    setSelectedSegnalazione(segnalazione);
+    setStatoDraft((segnalazione.stato || 'APERTA').toString().toUpperCase());
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedSegnalazione(null);
+  };
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <Spin size="large" tip="Caricamento segnalazioni..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert
+        message="Errore nel caricamento"
+        description={error}
+        type="error"
+        showIcon
+        style={{ margin: '20px' }}
+      />
+    );
+  }
+
+  if (!segnalazioni || segnalazioni.length === 0) {
+    return (
+      <Empty
+        description="Nessuna segnalazione presente"
+        image={Empty.PRESENTED_IMAGE_SIMPLE}
+        style={{ padding: '60px 0' }}
+      />
+    );
+  }
 
   return (
-    <>
-      <Carosello />
-      <div style={{ marginTop: '24px' }}>
-        <Tabs
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          items={items}
-          size="large"
-          ref={tabsRef}
-        />
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <Space direction="vertical" size={0}>
+          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '600' }}>Segnalazioni Recenti</h2>
+          <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>
+            Totale: {segnalazioni.length} segnalazioni
+          </p>
+        </Space>
       </div>
-    </>
+
+      <Row gutter={[16, 16]}>
+        {segnalazioni.map((segnalazione) => {
+          const statoConfig = getStatoConfig(segnalazione.stato);
+
+          return (
+            <Col xs={24} key={segnalazione.id?.toString()}>
+              <Badge.Ribbon text={statoConfig.text} color={statoConfig.color}>
+                <Card
+                  hoverable
+                  onClick={() => handleCardClick(segnalazione)}
+                  style={{
+                    borderRadius: '8px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.15)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  <Row gutter={16}>
+                    <Col xs={24} md={16}>
+                      <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                          <WarningOutlined style={{ fontSize: '24px', color: '#ff4d4f', marginTop: '4px' }} />
+                          <div style={{ flex: 1 }}>
+                            <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: '600', lineHeight: '1.4' }}>
+                              {segnalazione.titolo}
+                            </h3>
+                            <p
+                              style={{
+                                margin: 0,
+                                color: '#666',
+                                fontSize: '14px',
+                                lineHeight: '1.6',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden'
+                              }}
+                            >
+                              {segnalazione.descrizione}
+                            </p>
+                          </div>
+                        </div>
+
+                        <Descriptions column={{ xs: 1, sm: 2 }} size="small">
+                          <Descriptions.Item label={<><IdcardOutlined /> Matricola</>}>
+                            {segnalazione.matricola === 'Anonimo' ? (
+                              <Tag color="orange">Anonimo</Tag>
+                            ) : (
+                              <span style={{ fontWeight: '500' }}>{segnalazione.matricola || 'N/D'}</span>
+                            )}
+                          </Descriptions.Item>
+                          <Descriptions.Item label={<><CalendarOutlined /> Data</>}>
+                            {new Date(segnalazione.dataCreazione).toLocaleDateString('it-IT')}
+                          </Descriptions.Item>
+                        </Descriptions>
+                      </Space>
+                    </Col>
+
+                    {segnalazione.allegati && segnalazione.allegati.length > 0 && (
+                      <Col xs={24} md={8}>
+                        <div style={{ borderLeft: '1px solid #f0f0f0', paddingLeft: '16px', textAlign: 'center' }}>
+                          <PaperClipOutlined style={{ fontSize: '32px', color: '#1890ff', marginBottom: '8px' }} />
+                          <p style={{ margin: '0 0 8px 0', fontWeight: '600', color: '#333' }}>
+                            {segnalazione.allegati.length} Allegato{segnalazione.allegati.length !== 1 ? 'i' : ''}
+                          </p>
+                          <p style={{ margin: 0, color: '#999', fontSize: '12px' }}>Clicca per visualizzare</p>
+                        </div>
+                      </Col>
+                    )}
+                  </Row>
+                </Card>
+              </Badge.Ribbon>
+            </Col>
+          );
+        })}
+      </Row>
+
+      <Modal
+        title={
+          <Space>
+            <WarningOutlined style={{ color: '#ff4d4f', fontSize: '20px' }} />
+            <span>{selectedSegnalazione?.titolo}</span>
+          </Space>
+        }
+        open={isModalOpen}
+        onCancel={handleModalClose}
+        width={900}
+        footer={[
+          <Button key="close" onClick={handleModalClose}>
+            Chiudi
+          </Button>,
+          selectedSegnalazione?.allegati && selectedSegnalazione.allegati.length > 0 && (
+            <Button
+              key="view"
+              type="primary"
+              icon={<EyeOutlined />}
+              onClick={() => {
+                (document.querySelector('[aria-label="View"]') as HTMLElement)?.click();
+              }}
+            >
+              Visualizza Allegati
+            </Button>
+          )
+        ]}
+      >
+        {selectedSegnalazione && (
+          <Space direction="vertical" size="large" style={{ width: '100%' }}>
+            <div>
+              <h4 style={{ marginBottom: '8px', fontWeight: '600' }}>Descrizione</h4>
+              <p style={{ margin: 0, color: '#666', lineHeight: '1.6' }}>{selectedSegnalazione.descrizione}</p>
+            </div>
+
+            <Divider style={{ margin: '12px 0' }} />
+
+            <Descriptions column={{ xs: 1, sm: 2 }} bordered size="small">
+              <Descriptions.Item label={<><IdcardOutlined /> Matricola</>}>
+                {selectedSegnalazione.matricola === 'Anonimo' ? (
+                  <Tag color="orange">Anonimo</Tag>
+                ) : (
+                  <span style={{ fontWeight: '500' }}>{selectedSegnalazione.matricola || 'N/D'}</span>
+                )}
+              </Descriptions.Item>
+
+              <Descriptions.Item label={<><FolderOutlined /> Risorsa</>}>
+                <span style={{ fontWeight: '500' }}>ID: {selectedSegnalazione.risorsa}</span>
+              </Descriptions.Item>
+
+              <Descriptions.Item label={<><CalendarOutlined /> Data Creazione</>}>
+                {new Date(selectedSegnalazione.dataCreazione).toLocaleString('it-IT', {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </Descriptions.Item>
+
+              <Descriptions.Item label={<><FileTextOutlined /> Stato</>}>
+                {isManutentore ? (
+                  <Space>
+                    <Select
+                      value={statoDraft}
+                      style={{ width: 160 }}
+                      onChange={(v) => setStatoDraft(v)}
+                      options={[
+                        { value: 'APERTA', label: 'Aperta' },
+                        { value: 'IN_CORSO', label: 'In Corso' },
+                        { value: 'RISOLTA', label: 'Risolta' },
+                        { value: 'CHIUSA', label: 'Chiusa' }
+                      ]}
+                    />
+                    <Button type="primary" onClick={handleUpdateStato} loading={updatingStato}>
+                      Aggiorna
+                    </Button>
+                  </Space>
+                ) : (
+                  <Tag color={getStatoConfig(selectedSegnalazione.stato).color} icon={getStatoConfig(selectedSegnalazione.stato).icon}>
+                    {getStatoConfig(selectedSegnalazione.stato).text}
+                  </Tag>
+                )}
+              </Descriptions.Item>
+            </Descriptions>
+
+            <Divider style={{ margin: '12px 0' }} />
+
+            {selectedSegnalazione.allegati && selectedSegnalazione.allegati.length > 0 && (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                  <PaperClipOutlined style={{ fontSize: '18px', color: '#1890ff' }} />
+                  <h4 style={{ margin: 0, fontWeight: '600' }}>Allegati ({selectedSegnalazione.allegati.length})</h4>
+                </div>
+
+                <Image.PreviewGroup>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '12px' }}>
+                    {selectedSegnalazione.allegati.map((allegato, index) => (
+                      <div key={index} style={{ position: 'relative' }}>
+                        <Image
+                          src={allegato}
+                          alt={`Allegato ${index + 1}`}
+                          style={{
+                            width: '100%',
+                            height: '120px',
+                            objectFit: 'cover',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            border: '1px solid #f0f0f0'
+                          }}
+                          preview={{
+                            mask: (
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'white' }}>
+                                <EyeOutlined style={{ fontSize: '16px' }} />
+                                <span>Visualizza</span>
+                              </div>
+                            )
+                          }}
+                        />
+                        <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#666', textAlign: 'center' }}>
+                          Allegato {index + 1}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </Image.PreviewGroup>
+              </div>
+            )}
+          </Space>
+        )}
+      </Modal>
+    </div>
   );
 }
