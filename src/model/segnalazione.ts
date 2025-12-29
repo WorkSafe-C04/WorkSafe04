@@ -1,11 +1,15 @@
-
 export interface Segnalazione {
-  id: number;
-  titolo: string | undefined;
-  descrizione: string | undefined;
-  risorsa: number;
-  matricola: string | undefined;
+  id: string | number;
+  titolo: string;
+  descrizione?: string;
+  risorsa?: string | number;
+  matricola?: string;
   dataCreazione: string | Date;
-  stato: string | undefined;
+  stato?: string;
   allegati?: string[];
+
+  Risorsa?: {
+    id: string | number;
+    nome: string;
+  };
 }

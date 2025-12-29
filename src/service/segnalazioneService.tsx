@@ -9,11 +9,12 @@ export const SegnalazioneService = {
       id: item.id,
       titolo: item.titolo,
       descrizione: item.descrizione,
-      risorsa: item.risorsa,
+      risorsa: item.risorsa,      
       matricola: item.matricola,
       dataCreazione: item.dataCreazione,
       stato: item.stato,
       allegati: item.allegati,
+      Risorsa: item.Risorsa        
     }));
   }
 };
