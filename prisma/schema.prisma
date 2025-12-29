@@ -92,6 +92,7 @@ model Segnalazione {
   matricola     String?    @db.VarChar
   dataCreazione DateTime?  @default(now()) @db.Date
   stato         String?
+  priorita      String?    @db.VarChar
   Allegato      Allegato[]
   Utente        Utente?    @relation(fields: [matricola], references: [matricola], onDelete: NoAction)
   Risorsa       Risorsa?   @relation(fields: [risorsa], references: [id])

@@ -13,6 +13,8 @@ export const SegnalazioneService = {
       matricola: item.matricola,
       dataCreazione: item.dataCreazione,
       stato: item.stato,
+      priorita: item.priorita, 
+      
       allegati: item.allegati,
       Risorsa: item.Risorsa        
     }));

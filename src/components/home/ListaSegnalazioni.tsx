@@ -27,8 +27,10 @@ export default function ListaSegnalazioni() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [filterTitolo, setFilterTitolo] = useState('');
-  const [filterRisorsa, setFilterRisorsa] = useState<string | null>(null); 
+  const [filterRisorsa, setFilterRisorsa] = useState<string | null>(null);
   const [filterDate, setFilterDate] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null);
+  const [filterStato, setFilterStato] = useState<string | null>(null);
+  const [filterPriorita, setFilterPriorita] = useState<string | null>(null);
 
   const resourceOptions = useMemo(() => {
     if (!data || data.length === 0) return [];
@@ -45,20 +47,29 @@ export default function ListaSegnalazioni() {
     return uniqueNames.sort().map(name => ({ label: name, value: name }));
   }, [data]);
 
+  const statoOptions = [
+    { label: 'Aperta', value: 'APERTA' },
+    { label: 'In Corso', value: 'IN_CORSO' },
+    { label: 'Risolta', value: 'RISOLTA' },
+    { label: 'Chiusa', value: 'CHIUSA' },
+  ];
+
+  const prioritaOptions = [
+    { label: 'Alta', value: 'ALTA' },
+    { label: 'Media', value: 'MEDIA' },
+    { label: 'Bassa', value: 'BASSA' },
+  ];
+
   const filteredData = useMemo(() => {
     if (!data) return [];
 
     return data.filter(item => {
-      // Filtro Titolo
       const titoloMatch = (item.titolo || '').toLowerCase().includes(filterTitolo.toLowerCase());
 
-      // Filtro Risorsa (Logica per la Tendina)
       let risorsaMatch = true;
       if (filterRisorsa) {
-
           const rObj = item.Risorsa || (item as any).Risorsa;
           const nomeRisorsa = rObj?.nome || '';
-          
           risorsaMatch = nomeRisorsa === filterRisorsa;
       }
 
@@ -70,14 +81,27 @@ export default function ListaSegnalazioni() {
         dateMatch = itemDate.isAfter(startDate) && itemDate.isBefore(endDate);
       }
 
-      return titoloMatch && risorsaMatch && dateMatch;
+      let statoMatch = true;
+      if (filterStato) {
+        statoMatch = item.stato === filterStato;
+      }
+
+      let prioritaMatch = true;
+      if (filterPriorita) {
+        const p = (item as any).priorita || ''; 
+        prioritaMatch = p === filterPriorita;
+      }
+
+      return titoloMatch && risorsaMatch && dateMatch && statoMatch && prioritaMatch;
     });
-  }, [data, filterTitolo, filterRisorsa, filterDate]);
+  }, [data, filterTitolo, filterRisorsa, filterDate, filterStato, filterPriorita]);
 
   const resetFilters = () => {
     setFilterTitolo('');
     setFilterRisorsa(null); 
     setFilterDate(null);
+    setFilterStato(null);
+    setFilterPriorita(null);
   };
 
   if (loading) {
@@ -104,6 +128,16 @@ export default function ListaSegnalazioni() {
     }
   };
 
+  const getPrioritaConfig = (priorita?: string) => {
+    const p = priorita || 'N/D';
+    switch (p) {
+        case 'ALTA': return { color: 'red', text: 'Alta' };
+        case 'MEDIA': return { color: 'orange', text: 'Media' };
+        case 'BASSA': return { color: 'blue', text: 'Bassa' };
+        default: return { color: 'default', text: p };
+    }
+  };
+
   const handleCardClick = (segnalazione: Segnalazione) => {
     setSelectedSegnalazione(segnalazione);
     setIsModalOpen(true);
@@ -121,9 +155,7 @@ export default function ListaSegnalazioni() {
         
         <Card size="small" style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
           <Row gutter={[16, 16]} align="middle">
-            
-            {/* Filtro per Titolo */}
-            <Col xs={24} md={8}>
+            <Col xs={24} md={6}>
               <div style={{ marginBottom: 4, fontSize: 12, color: '#888' }}>Cerca nel titolo</div>
               <Input
                 placeholder="Es. Guasto..."
@@ -134,8 +166,7 @@ export default function ListaSegnalazioni() {
               />
             </Col>
             
-            {/* Filtro per Risorsa */}
-            <Col xs={24} md={8}>
+            <Col xs={24} md={6}>
               <div style={{ marginBottom: 4, fontSize: 12, color: '#888' }}>Seleziona Risorsa</div>
               <Select
                 style={{ width: '100%' }}
@@ -153,6 +184,30 @@ export default function ListaSegnalazioni() {
             </Col>
 
             <Col xs={24} md={6}>
+               <div style={{ marginBottom: 4, fontSize: 12, color: '#888' }}>Priorità</div>
+               <Select
+                  style={{ width: '100%' }}
+                  placeholder="Tutte"
+                  allowClear
+                  options={prioritaOptions}
+                  value={filterPriorita}
+                  onChange={setFilterPriorita}
+               />
+            </Col>
+
+            <Col xs={24} md={6}>
+               <div style={{ marginBottom: 4, fontSize: 12, color: '#888' }}>Stato</div>
+               <Select
+                  style={{ width: '100%' }}
+                  placeholder="Tutti"
+                  allowClear
+                  options={statoOptions}
+                  value={filterStato}
+                  onChange={setFilterStato}
+               />
+            </Col>
+
+            <Col xs={24} md={8}>
               <div style={{ marginBottom: 4, fontSize: 12, color: '#888' }}>Data Creazione</div>
               <RangePicker 
                 style={{ width: '100%' }} 
@@ -163,11 +218,11 @@ export default function ListaSegnalazioni() {
               />
             </Col>
 
-            <Col xs={24} md={2} style={{ textAlign: 'right', display: 'flex', alignItems: 'flex-end' }}>
+            <Col xs={24} md={16} style={{ textAlign: 'right', display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
               <Button 
                 icon={<ClearOutlined />} 
                 onClick={resetFilters}
-                disabled={!filterTitolo && !filterRisorsa && !filterDate}
+                disabled={!filterTitolo && !filterRisorsa && !filterDate && !filterStato && !filterPriorita}
                 style={{ marginTop: '20px' }}
               >
                 Reset
@@ -194,10 +249,12 @@ export default function ListaSegnalazioni() {
           </Col>
           {filteredData.map((segnalazione) => {
             const statoConfig = getStatoConfig(segnalazione.stato);
+            const priorita = (segnalazione as any).priorita || 'N/D';
+            const prioritaConfig = getPrioritaConfig(priorita);
 
             return (
               <Col xs={24} key={segnalazione.id}>
-                <Badge.Ribbon text={statoConfig.text} color={statoConfig.color}>
+                <Badge.Ribbon text={prioritaConfig.text} color={prioritaConfig.color}>
                   <Card
                     hoverable
                     onClick={() => handleCardClick(segnalazione)}
@@ -218,7 +275,7 @@ export default function ListaSegnalazioni() {
                             </div>
                           </div>
 
-                          <Descriptions column={{ xs: 1, sm: 2 }} size="small">
+                          <Descriptions column={{ xs: 1, sm: 2, md: 4 }} size="small" layout="vertical">
                             <Descriptions.Item label={<><FolderOutlined /> Risorsa ID</>}>
                                 <span style={{ fontWeight: '500' }}>
                                     {segnalazione.risorsa?.toString()}
@@ -228,13 +285,19 @@ export default function ListaSegnalazioni() {
                             <Descriptions.Item label={<><CalendarOutlined /> Data</>}>
                               {new Date(segnalazione.dataCreazione).toLocaleDateString('it-IT')}
                             </Descriptions.Item>
+
+                            <Descriptions.Item label="Stato">
+                                <Tag color={statoConfig.color} icon={statoConfig.icon}>
+                                    {statoConfig.text}
+                                </Tag>
+                            </Descriptions.Item>
                           </Descriptions>
                         </Space>
                       </Col>
                       
                       {segnalazione.allegati && segnalazione.allegati.length > 0 && (
                         <Col xs={24} md={8}>
-                          <div style={{ borderLeft: '1px solid #f0f0f0', paddingLeft: '16px', textAlign: 'center' }}>
+                          <div style={{ borderLeft: '1px solid #f0f0f0', paddingLeft: '16px', textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                             <PaperClipOutlined style={{ fontSize: '32px', color: '#1890ff', marginBottom: '8px' }} />
                             <p style={{ margin: '0 0 8px 0', fontWeight: '600', color: '#333' }}>
                               {segnalazione.allegati.length} Allegato{segnalazione.allegati.length !== 1 ? 'i' : ''}
@@ -268,7 +331,6 @@ export default function ListaSegnalazioni() {
             <Descriptions column={{ xs: 1, sm: 2 }} bordered size="small">
               <Descriptions.Item label="Matricola">{selectedSegnalazione.matricola || 'N/D'}</Descriptions.Item>
               <Descriptions.Item label="Risorsa">
-
                  {(() => {
                     const rObj = selectedSegnalazione.Risorsa || (selectedSegnalazione as any).Risorsa;
                     return rObj?.nome 
@@ -276,7 +338,13 @@ export default function ListaSegnalazioni() {
                         : selectedSegnalazione.risorsa?.toString();
                  })()}
               </Descriptions.Item>
+              
+              <Descriptions.Item label="Priorità">
+                 <Tag>{(selectedSegnalazione as any).priorita || 'N/D'}</Tag>
+              </Descriptions.Item>
+              
               <Descriptions.Item label="Stato"><Tag>{selectedSegnalazione.stato}</Tag></Descriptions.Item>
+              
               <Descriptions.Item label="Data">{new Date(selectedSegnalazione.dataCreazione).toLocaleDateString()}</Descriptions.Item>
             </Descriptions>
             {selectedSegnalazione.allegati && selectedSegnalazione.allegati.length > 0 && (

@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
         matricola: s.matricola,
         dataCreazione: s.dataCreazione,
         stato: s.stato,
+        priorita: s.priorita, 
         allegati: allegati,
         
         Risorsa: s.Risorsa ? {
