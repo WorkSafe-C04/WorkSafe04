@@ -110,14 +110,7 @@ export default function NuovaSegnalazionePage() {
                                     }
                                 ]}
                             >
-                                <Input
-                                    placeholder="Anonimo"
-                                    disabled={isAnonima}
-                                    style={{
-                                        backgroundColor: isAnonima ? '#f5f5f5' : 'white',
-                                        cursor: isAnonima ? 'not-allowed' : 'text'
-                                    }}
-                                />
+                                <Input disabled />
                             </Form.Item>
                         </div>
 
