@@ -150,7 +150,8 @@ export default function NuovaSegnalazionePage() {
                             <Upload
                                 beforeUpload={() => false} // Fondamentale: impedisce l'invio automatico
                                 multiple
-                                listType="picture"
+                                listType = "picture"
+                                accept = ".png, .jpg, .jpeg, .heic"
                             >
                                 <Button icon={<UploadOutlined />}>Seleziona Foto</Button>
                             </Upload>
