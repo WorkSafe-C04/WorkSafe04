@@ -18,7 +18,6 @@ export default function NuovaSegnalazionePage() {
     const [isAnonima, setIsAnonima] = useState(false);
     const [userMatricola, setUserMatricola] = useState<string>('');
 
-    // Recupera i dati dell'utente dal localStorage
     useEffect(() => {
         const userStr = localStorage.getItem('user');
         if (userStr) {
@@ -74,7 +73,10 @@ export default function NuovaSegnalazionePage() {
                         <Form.Item
                             label="Titolo"
                             name="titolo"
-                            rules={[{ required: true, message: 'Inserisci un titolo' }]}
+                            rules={[{ required: true, message: 'Inserisci un titolo' },
+                                { min: 3, message: 'Il titolo deve contenere almeno 3 caratteri' },
+                                { max: 50, message: 'Il titolo non può superare i 50 caratteri' }
+                            ]}
                         >
                             <Input placeholder="Es: Malfunzionamento hardware" />
                         </Form.Item>
@@ -133,14 +135,17 @@ export default function NuovaSegnalazionePage() {
                         <Form.Item
                             label="Descrizione"
                             name="descrizione"
-                            rules={[{ required: true, message: 'Fornisci una descrizione dettagliata' }]}
+                            rules={[{ required: true, message: 'Inserisci una descrizione' },
+                                { min: 20, message: 'La descrizione deve contenere almeno 20 caratteri' },
+                                { max: 300, message: 'La descrizione non può superare i 300 caratteri' }
+                            ]}
                         >
                             <TextArea rows={4} placeholder="Descrivi qui il problema..." />
                         </Form.Item>
 
                         <Form.Item
                             label="Allegati"
-                            name="allegati" // Questo nome deve essere uguale a quello usato nell'hook
+                            name="allegati" 
                             valuePropName="fileList"
                             getValueFromEvent={(e) => {
                                 if (Array.isArray(e)) return e;
@@ -148,7 +153,7 @@ export default function NuovaSegnalazionePage() {
                             }}
                         >
                             <Upload
-                                beforeUpload={() => false} // Fondamentale: impedisce l'invio automatico
+                                beforeUpload={() => false} 
                                 multiple
                                 listType = "picture"
                                 accept = ".png, .jpg, .jpeg, .heic"
