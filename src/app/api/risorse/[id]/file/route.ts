@@ -1,15 +1,28 @@
 import prisma from '@/core/db/prisma';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/apiAuth';
 
 export async function GET(
-    req: Request,
+    req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    // Verifica autenticazione
+    const user = requireAuth(req);
+    if (!user) {
+        return NextResponse.json(
+            { error: 'Non autorizzato. Effettua il login.' },
+            { status: 401 }
+        );
+    }
+
     try {
         const { id } = await params;
 
         const risorsa = await prisma.risorsa.findUnique({
-            where: { id: BigInt(id) },
+            where: { 
+                id: BigInt(id),
+                codiceAzienda: user.codiceAzienda 
+            },
             select: { schedaAllegata: true }
         });
 
