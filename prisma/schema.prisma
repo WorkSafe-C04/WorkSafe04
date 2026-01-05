@@ -103,7 +103,6 @@ model Segnalazione {
   dataCreazione DateTime?  @default(now()) @db.Date
   stato         String?
   priorita      String?    @db.VarChar
-  codiceAzienda String?
   Allegato      Allegato[]
   Azienda       Azienda?   @relation(fields: [codiceAzienda], references: [codiceAzienda], onDelete: NoAction, onUpdate: NoAction)
   Utente        Utente?    @relation(fields: [matricola], references: [matricola], onDelete: NoAction)
