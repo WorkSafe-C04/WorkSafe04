@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRegister } from '@/hook/registerHook';
 import { message } from 'antd';
-import { SafetyOutlined, UserOutlined, MailOutlined, LockOutlined, IdcardOutlined } from '@ant-design/icons';
+import { SafetyOutlined, UserOutlined, MailOutlined, LockOutlined, IdcardOutlined, CalendarOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Role } from '@/model/role';
@@ -16,24 +16,63 @@ export default function RegisterPage() {
         dataNascita: '',
         email: '',
         password: '',
-        ruolo: '',
-        dataAssunzione: ''
+        ruolo: ''
     });
+    const [passwordError, setPasswordError] = useState('');
     const { register, loading } = useRegister();
     const router = useRouter();
 
+    const validatePassword = (password: string): string | null => {
+        if (password.length < 8) {
+            return 'La password deve essere lunga almeno 8 caratteri.';
+        }
+        if (!/[A-Z]/.test(password)) {
+            return 'La password deve contenere almeno una lettera maiuscola.';
+        }
+        if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+            return 'La password deve contenere almeno un carattere speciale.';
+        }
+        return null;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formData.matricola || !formData.email || !formData.password) {
+        if (!formData.matricola || !formData.dataNascita || !formData.email || !formData.password || !formData.ruolo) {
             message.error('Compila i campi obbligatori');
             return;
         }
+
+        // Controllo formato email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            message.error('Inserisci un indirizzo email valido');
+            return;
+        }
+
+        // Controllo data di nascita (non oggi o futura)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Azzera ore per confronto solo date
+        const birthDate = new Date(formData.dataNascita);
+        if (birthDate >= today) {
+            message.error('La data di nascita deve essere precedente a oggi');
+            return;
+        }
+
+        // Controllo password
+        const passwordValidation = validatePassword(formData.password);
+        if (passwordValidation) {
+            setPasswordError(passwordValidation);
+            return;
+        } else {
+            setPasswordError('');
+        }
+
         try {
             await register(formData);
             message.success('Registrazione riuscita!');
             router.push('/auth/login');
-        } catch (err) {
-            message.error('Errore durante la registrazione');
+        } catch (err : any) {
+            message.error(err.response?.data?.message || err.response?.data?.error || 'Errore durante la registrazione');
         }
     };
 
@@ -143,6 +182,23 @@ export default function RegisterPage() {
 
                     <div style={{ marginBottom: '20px' }}>
                         <label style={{ display: 'block', marginBottom: '8px', color: '#333', fontWeight: '500', fontSize: '14px' }}>
+                            Data di nascita *
+                        </label>
+                        <div style={{ position: 'relative' }}>
+                            <CalendarOutlined style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#999', fontSize: '16px' }} />
+                            <input
+                                type="date"
+                                value={formData.dataNascita}
+                                onChange={(e) => handleInputChange('dataNascita', e.target.value)}
+                                style={inputStyle}
+                                onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                                onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                            />
+                        </div>
+                    </div>
+
+                    <div style={{ marginBottom: '20px' }}>
+                        <label style={{ display: 'block', marginBottom: '8px', color: '#333', fontWeight: '500', fontSize: '14px' }}>
                             Email *
                         </label>
                         <div style={{ position: 'relative' }}>
@@ -175,11 +231,12 @@ export default function RegisterPage() {
                                 onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
                             />
                         </div>
+                        {passwordError && <p style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{passwordError}</p>}
                     </div>
 
                     <div style={{ marginBottom: '24px' }}>
                         <label style={{ display: 'block', marginBottom: '8px', color: '#333', fontWeight: '500', fontSize: '14px' }}>
-                            Ruolo
+                            Ruolo *
                         </label>
                         <select
                             value={formData.ruolo}

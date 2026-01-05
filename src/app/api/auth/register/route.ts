@@ -7,23 +7,34 @@ export async function POST(request: Request): Promise<Response> {
     try {
         const body = await request.json();
 
-        const { matricola, nome, cognome, dataNascita, email, password, ruolo, dataAssunzione } = body;
+        const { matricola, nome, cognome, dataNascita, email, password, ruolo } = body;
 
-        if (!matricola || !email || !password) {
+        if (!matricola || !dataNascita || !email || !password || !ruolo) {
             return NextResponse.json({
-                message: "Matricola, email e password sono obbligatori"
+                message: "Matricola, data di nascita, email, password e ruolo sono obbligatori"
             }, { status: 400 });
         }
 
         //Controlla se l'utente esiste già
         const existingUser = await prisma.utente.findFirst({
-            where: { email }
+            where: { 
+                OR: [
+                    { email },
+                    { matricola }
+                ]
+            }
         });
 
         if (existingUser) {
-            return NextResponse.json({
-                message: "Email già registrata"
-            }, { status: 409 });
+            if(existingUser.email === email){
+                return NextResponse.json({
+                    message: "Email già registrata"
+                }, { status: 409 });
+            } else {
+                return NextResponse.json({
+                    message: "Matricola già registrata"
+                }, { status: 409 });
+            }
         }
 
         //Cripta la password
@@ -39,7 +50,6 @@ export async function POST(request: Request): Promise<Response> {
                 email,
                 password: hashedPassword,
                 ruolo,
-                dataAssunzione: dataAssunzione ? new Date(dataAssunzione) : null
             }
         });
 
@@ -51,7 +61,7 @@ export async function POST(request: Request): Promise<Response> {
             dataNascita: newUser.dataNascita ? newUser.dataNascita : undefined,
             email: newUser.email ? newUser.email : undefined,
             ruolo: newUser.ruolo ? newUser.ruolo : undefined,
-            dataAssunzione: newUser.dataAssunzione ? newUser.dataAssunzione : undefined
+            dataAssunzione: undefined
         };
 
         return NextResponse.json({
