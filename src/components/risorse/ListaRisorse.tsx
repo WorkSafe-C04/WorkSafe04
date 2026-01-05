@@ -166,8 +166,7 @@ export const ListaRisorse: React.FC = () => {
         >
           <Option value="Disponibile">✅ Disponibile</Option>
           <Option value="In Manutenzione">⚠️ In Manutenzione</Option>
-          <Option value="Guasto">❌ Guasto</Option>
-          <Option value="Dismesso">⛔ Dismesso</Option>
+          <Option value="Segnalato">⛔ Segnalato</Option>
         </Select>
       ),
     },

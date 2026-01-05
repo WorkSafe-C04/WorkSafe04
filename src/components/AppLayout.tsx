@@ -65,7 +65,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const [userData, setUserData] = useState<{ nome?: string; cognome?: string; email?: string; matricola?: string; ruolo?: string } | null>(null);
+  const [userData, setUserData] = useState<{ nome?: string; cognome?: string; email?: string; matricola?: string; ruolo?: string; codiceAzienda?: string } | null>(null);
+  const [aziendaNome, setAziendaNome] = useState<string>('');
   const [menuItems, setMenuItems] = useState<MenuItem[]>(allMenuItems);
   const [avvisi, setAvvisi] = useState<any[]>([]);
   const [avvisiNonLetti, setAvvisiNonLetti] = useState<any[]>([]);
@@ -102,6 +103,18 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         setUserData(user);
         // Imposta i menu items in base al ruolo
         setMenuItems(getMenuItemsByRole(user.ruolo));
+        
+        // Recupera il nome dell'azienda
+        if (user.codiceAzienda) {
+          fetch(`/api/aziende?codice=${user.codiceAzienda}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data && data.ragioneSociale) {
+                setAziendaNome(data.ragioneSociale);
+              }
+            })
+            .catch(err => console.error('Errore nel recupero azienda:', err));
+        }
       } catch (error) {
         console.error('Errore nel parsing dei dati utente:', error);
       }
@@ -111,6 +124,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       setAvvisi([]);
       setAvvisiNonLetti([]);
       setBadgeCount(0);
+      setAziendaNome('');
       setMenuItems(allMenuItems);
     }
   }, []);
@@ -129,6 +143,18 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             setAvvisi([]);
             setAvvisiNonLetti([]);
             setBadgeCount(0);
+            
+            // Ricarica il nome dell'azienda
+            if (user.codiceAzienda) {
+              fetch(`/api/aziende?codice=${user.codiceAzienda}`)
+                .then(res => res.json())
+                .then(data => {
+                  if (data && data.ragioneSociale) {
+                    setAziendaNome(data.ragioneSociale);
+                  }
+                })
+                .catch(err => console.error('Errore nel recupero azienda:', err));
+            }
           } catch (error) {
             console.error('Errore nel parsing dei dati utente:', error);
           }
@@ -138,6 +164,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           setAvvisi([]);
           setAvvisiNonLetti([]);
           setBadgeCount(0);
+          setAziendaNome('');
           setMenuItems(allMenuItems);
         }
       }
@@ -346,6 +373,30 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           <SafetyOutlined style={{ fontSize: collapsed ? '32px' : '28px', marginRight: collapsed ? 0 : '12px' }} />
           {!collapsed && <span>WorkSafe</span>}
         </div>
+        {!collapsed && aziendaNome && (
+          <div
+            style={{
+              padding: '0 16px',
+              marginBottom: '16px',
+              textAlign: 'center',
+              color: '#fff',
+              opacity: 0.85,
+            }}
+          >
+            <div
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                padding: '8px 12px',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: '500',
+                borderLeft: '3px solid #1890ff',
+              }}
+            >
+              {aziendaNome}
+            </div>
+          </div>
+        )}
         <Menu
           theme="dark"
           selectedKeys={selectedKeys}

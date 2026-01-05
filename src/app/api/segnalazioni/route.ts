@@ -20,10 +20,11 @@ export async function GET(request: NextRequest) {
 
   try {
      const segnalazioni = await prisma.segnalazione.findMany({
-      // qui aggiungo la clausola WHERE 
-      // cosi se c'è un risorsaId, filtra per quello altrimenti prendi tutto
-      where: risorsaId ? { risorsa: parseInt(risorsaId) } : {},
-
+      
+      where: {
+        codiceAzienda: user.codiceAzienda,
+        ...(risorsaId ? { risorsa: BigInt(risorsaId) } : {} )
+      },
       orderBy: { id: 'desc' },
       include: {
         Allegato: true,
