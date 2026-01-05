@@ -1,11 +1,38 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import { Table, Tag, Select, Card, Button } from 'antd';
-import { useRisorseTable, getTipoIcon, getTipoColor } from '@/hook/risorseHook';
-import { Risorsa } from '@/model/risorsa';
-import { SyncOutlined } from '@ant-design/icons';
+
+import React, { useState } from "react";
+import {
+  Table,
+  Tag,
+  Select,
+  Card,
+  Button,
+  Modal,
+  Descriptions,
+  Spin,
+  List,
+  Typography
+} from "antd";
+import { SyncOutlined } from "@ant-design/icons";
+import {
+  useRisorseTable,
+  getTipoIcon,
+  getTipoColor,
+} from "@/hook/risorseHook";
+import { Risorsa } from "@/model/risorsa";
 
 const { Option } = Select;
+const { Text } = Typography;
+
+
+type Segnalazione = {
+  id: string;
+  titolo: string;
+  descrizione?: string;
+  risorsa?: string;
+  dataCreazione?: string;
+  stato?: string;
+};
 
 export const ListaRisorse: React.FC = () => {
   const { risorse, loading, refresh, handleStatoChange } = useRisorseTable();
@@ -24,186 +51,242 @@ export const ListaRisorse: React.FC = () => {
     }
   }, []);
 
+  const [open, setOpen] = useState(false);
+  const [selectedRisorsa, setSelectedRisorsa] = useState<Risorsa | null>(null);
+  const [segnalazioni, setSegnalazioni] = useState<Segnalazione[]>([]);
+  const [loadingSegnalazioni, setLoadingSegnalazioni] = useState(false);
+
+  /* 
+     FETCH SEGNALAZIONI 
+      */
+  const fetchSegnalazioni = async (risorsaId: string) => {
+    setLoadingSegnalazioni(true);
+    setSegnalazioni([]);
+    
+    try {
+      // Chiama l'API passando l'ID della risorsa come filtro
+      const res = await fetch(`/api/segnalazioni?risorsaId=${risorsaId}`);
+      
+      if (!res.ok) {
+        throw new Error("Errore API segnalazioni");
+      }
+
+      const data: Segnalazione[] = await res.json();
+      setSegnalazioni(data);
+    } catch (error) {
+      console.error("Errore caricamento segnalazioni:", error);
+      // In caso di errore la lista rimane vuota
+      setSegnalazioni([]);
+    } finally {
+      setLoadingSegnalazioni(false);
+    }
+  };
+
   const columns = [
     {
-      title: <span style={{ fontWeight: '700', fontSize: '15px' }}>📦 Nome</span>,
-      dataIndex: 'nome',
-      key: 'nome',
-      render: (text: string) => (
-        <strong style={{
-          fontSize: '15px',
-          color: '#1a1a2e',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
+      title: "📦 Nome",
+      dataIndex: "nome",
+      key: "nome",
+      render: (text: string, record: Risorsa) => (
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedRisorsa(record);
+            setOpen(true);
+            fetchSegnalazioni(record.id.toString());
+          }}
+          style={{ 
+            fontWeight: "bold", 
+            fontSize: 15,
+            cursor: "pointer",   
+            color: "inherit",     
+            display: "inline-block",
+            transition: "all 0.2s"
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"}
+          onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}
+        >
           {text}
-        </strong>
+        </div>
       ),
     },
     {
-      title: <span style={{ fontWeight: '700', fontSize: '15px' }}>🏷️ Tipo</span>,
-      dataIndex: 'tipo',
-      key: 'tipo',
+      title: "🏷️ Tipo",
+      dataIndex: "tipo",
+      key: "tipo",
       render: (tipo: string) => (
-        <Tag
-          color={getTipoColor(tipo)}
-          style={{
-            fontSize: '14px',
-            padding: '4px 12px',
-            borderRadius: '10px',
-            fontWeight: '600'
-          }}
-        >
+        <Tag color={getTipoColor(tipo)}>
           {getTipoIcon(tipo)} {tipo}
         </Tag>
       ),
     },
     {
-      title: <span style={{ fontWeight: '700', fontSize: '15px' }}>📝 Descrizione</span>,
-      dataIndex: 'descrizione',
-      key: 'descrizione',
-      render: (text: string) => (
-        <span style={{ color: '#666', fontSize: '14px' }}>{text || 'Nessuna descrizione'}</span>
-      ),
+      title: "📝 Descrizione",
+      dataIndex: "descrizione",
+      key: "descrizione",
+      render: (text?: string) => text || <Text type="secondary">Nessuna descrizione</Text>,
     },
     {
-      title: <span style={{ fontWeight: '700', fontSize: '15px' }}>📎 Scheda Allegata</span>,
-      dataIndex: 'schedaAllegata',
-      key: 'schedaAllegata',
-      render: (scheda: string | undefined, record: Risorsa) => {
-        if (!scheda) {
-          return <span style={{ color: '#999', fontSize: '14px' }}>Nessun allegato</span>;
-        }
-
-        const handleOpen = () => {
-          // Apre il file tramite l'endpoint API dedicato
-          window.open(scheda, '_blank');
-        };
-
-        return (
+      title: "📎 Allegato",
+      dataIndex: "schedaAllegata",
+      key: "schedaAllegata",
+      render: (scheda: string | undefined, record: Risorsa) =>
+        scheda ? (
           <a
-            onClick={handleOpen}
-            style={{
-              color: '#667eea',
-              cursor: 'pointer',
-              textDecoration: 'underline',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}
+            href={scheda}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
           >
-            📄 {record.nomeFile || 'Visualizza allegato'}
+            📄 {record.nomeFile ?? "Apri Scheda"}
           </a>
-        );
-      },
+        ) : (
+          <Text type="secondary">Nessun allegato</Text>
+        ),
     },
     {
-      title: <span style={{ fontWeight: '700', fontSize: '15px' }}>⚡ Stato Attuale</span>,
-      dataIndex: 'stato',
-      key: 'stato',
+      title: "⚡ Stato",
+      dataIndex: "stato",
+      key: "stato",
       render: (stato: string, record: Risorsa) => (
-        isManutentore ? (
-          <Select
-            defaultValue={stato}
-            value={stato}
-            style={{ width: 180 }}
-            size="large"
-            onChange={(value) => handleStatoChange(record.id, value)}
-            status={stato === 'Guasto' ? 'error' : stato === 'In Manutenzione' ? 'warning' : stato === 'Segnalata' ? 'warning' : ''}
-          >
-            <Option value="Disponibile">✅ Disponibile</Option>
-            <Option value="In Manutenzione">⚠️ In Manutenzione</Option>
-            <Option value="Segnalata">🚨 Segnalata</Option>
-          </Select>
-        ) : (
-          <Tag
-            color={
-              stato === 'Disponibile' ? 'success' :
-                stato === 'In Manutenzione' ? 'warning' :
-
-                  stato === 'Segnalata' ? 'orange' :
-                    'default'
-            }
-            style={{
-              fontSize: '14px',
-              padding: '6px 14px',
-              borderRadius: '10px',
-              fontWeight: '600'
-            }}
-          >
-            {stato === 'Disponibile' && '✅'}
-            {stato === 'In Manutenzione' && '⚠️'}
-            {stato === 'Guasto' && '❌'}
-            {stato === 'Segnalata' && '🚨'}
-            {stato === 'Dismesso' && '⛔'}
-            {' '}{stato}
-          </Tag>
-        )
+        <Select
+          value={stato}
+          style={{ width: 180 }}
+          // Impedisce l'apertura della modale quando si clicca sul select
+          onClick={(e) => e.stopPropagation()} 
+          onChange={(value) => handleStatoChange(record.id, value)}
+          status={
+            stato === "Guasto"
+              ? "error"
+              : stato === "In Manutenzione"
+              ? "warning"
+              : ""
+          }
+        >
+          <Option value="Disponibile">✅ Disponibile</Option>
+          <Option value="In Manutenzione">⚠️ In Manutenzione</Option>
+          <Option value="Guasto">❌ Guasto</Option>
+          <Option value="Dismesso">⛔ Dismesso</Option>
+        </Select>
       ),
     },
   ];
-
   return (
     <Card
-      title={<span style={{ fontSize: '20px', fontWeight: '600' }}>📋 Inventario Risorse</span>}
+      title="📋 Inventario Risorse"
       extra={
         <Button
           icon={<SyncOutlined />}
           onClick={refresh}
-          size="large"
-          style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '10px',
-            fontWeight: '600',
-            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
-          }}
+          type="primary"
         >
           Aggiorna
         </Button>
       }
-      style={{
-        marginTop: '20px',
-        borderRadius: '10px',
-        boxShadow: '0 8px 24px rgba(102, 126, 234, 0.15)',
-        border: 'none',
-        background: 'linear-gradient(to bottom, #ffffff, #f8f9ff)'
-      }}
-      headStyle={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
-        borderRadius: '10px 10px 0 0',
-        fontSize: '18px',
-        padding: '20px 24px'
-      }}
     >
       <Table
         dataSource={risorse}
         columns={columns}
-        rowKey="id"
+        rowKey={(record) => record.id.toString()}
         loading={loading}
-        pagination={{
-          pageSize: 6,
-          showSizeChanger: true,
-          pageSizeOptions: ['6', '12', '20', '50'],
-          style: { marginTop: '20px' }
-        }}
-        style={{
-          borderRadius: '10px'
-        }}
-        rowClassName={() => 'hover-row'}
+        pagination={{ pageSize: 6 }}
+        onRow={(record) => ({
+          style: { cursor: "default" }, 
+        })}
       />
-      <style jsx global>{`
-        .hover-row:hover {
-          background-color: #f0f5ff !important;
-          transition: all 0.3s ease;
+
+      {/*  MODALE DETTAGLI  */}
+      <Modal
+        open={open}
+        onCancel={() => setOpen(false)}
+        footer={null}
+        width={600}
+        title={
+          <span>
+            📦 Dettagli Risorsa: <strong>{selectedRisorsa?.nome}</strong>
+          </span>
         }
-        .ant-table-thead > tr > th {
-          background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%) !important;
-          font-weight: 700 !important;
-        }
-      `}</style>
+      >
+        {selectedRisorsa && (
+          <>
+            {/* Dettagli Generali */}
+            <Descriptions bordered column={1} size="small">
+              <Descriptions.Item label="Nome">
+                {selectedRisorsa.nome}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Tipo">
+                <Tag color={getTipoColor(selectedRisorsa.tipo || "")}>
+                  {getTipoIcon(selectedRisorsa.tipo || "")}{" "}
+                  {selectedRisorsa.tipo}
+                </Tag>
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Descrizione">
+                {selectedRisorsa.descrizione || "Nessuna descrizione"}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Stato Attuale">
+                <strong>{selectedRisorsa.stato}</strong>
+              </Descriptions.Item>
+            </Descriptions>
+
+            {/* Sezione Cronologia Segnalazioni */}
+            <div style={{ marginTop: 24 }}>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                borderBottom: "1px solid #f0f0f0", 
+                paddingBottom: 8,
+                marginBottom: 12
+              }}>
+                <h3 style={{ margin: 0 }}>🛠️ Cronologia Segnalazioni</h3>
+              </div>
+
+              {loadingSegnalazioni ? (
+                <div style={{ textAlign: "center", padding: 20 }}>
+                  <Spin tip="Caricamento storico..." />
+                </div>
+              ) : (
+                <List
+                  itemLayout="horizontal"
+                  dataSource={segnalazioni}
+                  locale={{ emptyText: "Nessuna segnalazione registrata per questa risorsa." }}
+                  renderItem={(s) => (
+                    <List.Item>
+                      <List.Item.Meta
+                        title={
+                          <span style={{ color: "#1890ff", fontWeight: 500 }}>
+                            {s.titolo}
+                          </span>
+                        }
+                        description={
+                          <div>
+                            <div style={{ marginBottom: 4 }}>
+                              {s.descrizione || "Nessun dettaglio fornito"}
+                            </div>
+                            <small style={{ color: "#8c8c8c" }}>
+                              📅 Data: {s.dataCreazione 
+                                ? new Date(s.dataCreazione).toLocaleDateString("it-IT") 
+                                : "N/A"}
+                            </small>
+                          </div>
+                        }
+                      />
+                      {s.stato && (
+                        <Tag color={s.stato === 'RISOLTA' ? 'green' : 'volcano'}>
+                          {s.stato}
+                        </Tag>
+                      )}
+                    </List.Item>
+                  )}
+                />
+              )}
+            </div>
+          </>
+        )}
+      </Modal>
     </Card>
   );
 };

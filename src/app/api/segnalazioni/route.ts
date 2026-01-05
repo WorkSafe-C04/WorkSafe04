@@ -5,11 +5,25 @@ import { requireAuth } from '@/lib/apiAuth';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  // Recupera il parametro risorsaId dall'URL
+  const { searchParams } = new URL(request.url);
+  const risorsaId = searchParams.get('risorsaId');
+
+  // Verifica autenticazione
   const user = requireAuth(request);
-  if (!user) return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
+  if (!user) {
+    return NextResponse.json(
+      { error: 'Non autorizzato. Effettua il login.' },
+      { status: 401 }
+    );
+  } 
 
   try {
-    const segnalazioni = await prisma.segnalazione.findMany({
+     const segnalazioni = await prisma.segnalazione.findMany({
+      // qui aggiungo la clausola WHERE 
+      // cosi se c'è un risorsaId, filtra per quello altrimenti prendi tutto
+      where: risorsaId ? { risorsa: parseInt(risorsaId) } : {},
+
       orderBy: { dataCreazione: 'desc' },
       include: {
         Allegato: true,
