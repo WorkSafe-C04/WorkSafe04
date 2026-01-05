@@ -9,12 +9,16 @@ import Link from 'next/link';
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { login, loading } = useLogin();
+    const { login, loading, error } = useLogin();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!email || !password) {
-            message.error('Inserisci email e password');
+        if (!email) {
+            message.error('Errore: inserisci email');
+            return;
+        }
+        if (!password) {
+            message.error('Errore: inserisci password');
             return;
         }
         try {
@@ -26,7 +30,7 @@ export default function LoginPage() {
             message.success('Login riuscito!');
             window.location.href = '/home';
         } catch (err) {
-            message.error('Credenziali non valide');
+            message.error(error || 'Credenziali non valide');
         }
     };
 
