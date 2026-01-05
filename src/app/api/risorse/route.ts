@@ -21,6 +21,9 @@ export async function GET(request: NextRequest) {
 
   try {
     const risorse = await prisma.risorsa.findMany({
+      where: {
+        codiceAzienda: user.codiceAzienda
+      },
       orderBy: { id: 'desc' }
     });
 
@@ -69,7 +72,8 @@ export async function POST(req: NextRequest) {
         tipo: body.tipo,
         descrizione: body.descrizione,
         stato: "Disponibile",
-        schedaAllegata: bufferFile
+        schedaAllegata: bufferFile,
+        codiceAzienda: user.codiceAzienda
       }
     });
 

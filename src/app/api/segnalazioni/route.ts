@@ -15,6 +15,9 @@ export async function GET(request: NextRequest) {
 
   try {
     const segnalazioni = await prisma.segnalazione.findMany({
+      where: {
+        codiceAzienda: user.codiceAzienda
+      },
       include: {
         Allegato: true
       },
@@ -52,7 +55,16 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Verifica autenticazione
+  const user = requireAuth(request);
+  if (!user) {
+    return NextResponse.json(
+      { error: 'Non autorizzato. Effettua il login.' },
+      { status: 401 }
+    );
+  }
+
   try {
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
@@ -63,10 +75,12 @@ export async function POST(request: Request) {
         descrizione: formData.get('descrizione') as string,
         risorsa: BigInt(formData.get('risorsa') as string),
         matricola: formData.get('matricola') as string,
+        codiceAzienda: user.codiceAzienda,
         Allegato: {
           create: await Promise.all(files.map(async (f) => ({
             contenuto: Buffer.from(await f.arrayBuffer()),
             dimensione: BigInt(f.size),
+            codiceAzienda: user.codiceAzienda
           })))
         }
       }

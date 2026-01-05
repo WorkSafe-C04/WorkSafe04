@@ -13,25 +13,31 @@ model Allegato {
   contenuto      Bytes
   dimensione     BigInt?
   idSegnalazione Int?
+  codiceAzienda  String?
+  Azienda        Azienda?      @relation(fields: [codiceAzienda], references: [codiceAzienda], onDelete: NoAction, onUpdate: NoAction)
   Segnalazione   Segnalazione? @relation(fields: [idSegnalazione], references: [id], onDelete: Cascade)
 }
 
 model Documentazione {
-  id          BigInt      @id @default(autoincrement())
-  nome        String      @db.VarChar
-  descrizione String?     @db.VarChar
-  contenuto   Bytes?
-  formazione  BigInt?
-  risorsa     BigInt?
-  Formazione  Formazione? @relation(fields: [formazione], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Risorsa     Risorsa?    @relation(fields: [risorsa], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id            BigInt      @id @default(autoincrement())
+  nome          String      @db.VarChar
+  descrizione   String?     @db.VarChar
+  contenuto     Bytes?
+  formazione    BigInt?
+  risorsa       BigInt?
+  codiceAzienda String?
+  Azienda       Azienda?    @relation(fields: [codiceAzienda], references: [codiceAzienda], onDelete: NoAction, onUpdate: NoAction)
+  Formazione    Formazione? @relation(fields: [formazione], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Risorsa       Risorsa?    @relation(fields: [risorsa], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model Formazione {
   id                 BigInt               @id @default(autoincrement())
   numeroCorsi        BigInt
   argomento          String?              @db.VarChar
+  codiceAzienda      String?
   Documentazione     Documentazione[]
+  Azienda            Azienda?             @relation(fields: [codiceAzienda], references: [codiceAzienda], onDelete: NoAction, onUpdate: NoAction)
   GestioneFormazione GestioneFormazione[]
   Quiz               Quiz[]
   VideoCorso         VideoCorso[]
@@ -62,12 +68,14 @@ model GestioneRisorsa {
 }
 
 model Quiz {
-  id         BigInt      @id @default(autoincrement())
-  nome       String      @db.VarChar
-  durata     BigInt?
-  punteggio  BigInt?
-  formazione BigInt?
-  Formazione Formazione? @relation(fields: [formazione], references: [id], onDelete: NoAction)
+  id            BigInt      @id @default(autoincrement())
+  nome          String      @db.VarChar
+  durata        BigInt?
+  punteggio     BigInt?
+  formazione    BigInt?
+  codiceAzienda String?
+  Azienda       Azienda?    @relation(fields: [codiceAzienda], references: [codiceAzienda], onDelete: NoAction, onUpdate: NoAction)
+  Formazione    Formazione? @relation(fields: [formazione], references: [id], onDelete: NoAction)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -78,8 +86,10 @@ model Risorsa {
   descrizione     String?           @db.VarChar
   stato           String?           @db.VarChar
   schedaAllegata  Bytes?
+  codiceAzienda   String?
   Documentazione  Documentazione[]
   GestioneRisorsa GestioneRisorsa[]
+  Azienda         Azienda?          @relation(fields: [codiceAzienda], references: [codiceAzienda], onDelete: NoAction, onUpdate: NoAction)
   Segnalazione    Segnalazione[]
 }
 
@@ -92,7 +102,10 @@ model Segnalazione {
   matricola     String?    @db.VarChar
   dataCreazione DateTime?  @default(now()) @db.Date
   stato         String?
+  priorita      String?    @db.VarChar
+  codiceAzienda String?
   Allegato      Allegato[]
+  Azienda       Azienda?   @relation(fields: [codiceAzienda], references: [codiceAzienda], onDelete: NoAction, onUpdate: NoAction)
   Utente        Utente?    @relation(fields: [matricola], references: [matricola], onDelete: NoAction)
   Risorsa       Risorsa?   @relation(fields: [risorsa], references: [id])
 }
@@ -107,21 +120,25 @@ model Utente {
   password           String?              @db.VarChar
   ruolo              String?              @db.VarChar
   dataAssunzione     DateTime?            @db.Date
+  codiceAzienda      String?              @db.VarChar
   Avviso             Avviso[]
   GestioneFormazione GestioneFormazione[]
   GestioneRisorsa    GestioneRisorsa[]
   Segnalazione       Segnalazione[]
+  Azienda            Azienda?             @relation(fields: [codiceAzienda], references: [codiceAzienda], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model VideoCorso {
-  id          BigInt      @id @default(autoincrement())
-  nome        String      @db.VarChar
-  durata      BigInt?
-  descrizione String?     @db.VarChar
-  stato       String?     @db.VarChar
-  url         String      @db.VarChar
-  formazione  BigInt?
-  Formazione  Formazione? @relation(fields: [formazione], references: [id], onDelete: NoAction)
+  id            BigInt      @id @default(autoincrement())
+  nome          String      @db.VarChar
+  durata        BigInt?
+  descrizione   String?     @db.VarChar
+  stato         String?     @db.VarChar
+  url           String      @db.VarChar
+  formazione    BigInt?
+  codiceAzienda String?     @db.VarChar
+  Azienda       Azienda?    @relation(fields: [codiceAzienda], references: [codiceAzienda], onDelete: NoAction, onUpdate: NoAction)
+  Formazione    Formazione? @relation(fields: [formazione], references: [id], onDelete: NoAction)
 }
 
 model Avviso {
@@ -130,5 +147,24 @@ model Avviso {
   descrizione   String?
   dataCreazione DateTime? @default(now()) @db.Date
   matricola     String?   @db.VarChar
+  codiceAzienda String?
+  Azienda       Azienda?  @relation(fields: [codiceAzienda], references: [codiceAzienda], onDelete: NoAction, onUpdate: NoAction)
   Utente        Utente?   @relation(fields: [matricola], references: [matricola], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Azienda {
+  codiceAzienda  String           @id @db.VarChar
+  partitaIva     String           @db.VarChar
+  ragioneSociale String?          @db.VarChar
+  sede           String?          @db.VarChar
+  recapito       String?          @db.VarChar
+  Allegato       Allegato[]
+  Avviso         Avviso[]
+  Documentazione Documentazione[]
+  Formazione     Formazione[]
+  Quiz           Quiz[]
+  Risorsa        Risorsa[]
+  Segnalazione   Segnalazione[]
+  Utente         Utente[]
+  VideoCorso     VideoCorso[]
 }

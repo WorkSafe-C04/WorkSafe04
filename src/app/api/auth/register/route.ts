@@ -7,11 +7,11 @@ export async function POST(request: Request): Promise<Response> {
     try {
         const body = await request.json();
 
-        const { matricola, nome, cognome, dataNascita, email, password, ruolo, dataAssunzione } = body;
+        const { matricola, nome, cognome, dataNascita, email, password, ruolo, dataAssunzione, codiceAzienda } = body;
 
-        if (!matricola || !email || !password) {
+        if (!matricola || !email || !password || !codiceAzienda) {
             return NextResponse.json({
-                message: "Matricola, email e password sono obbligatori"
+                message: "Matricola, email, password e codice azienda sono obbligatori"
             }, { status: 400 });
         }
 
@@ -39,7 +39,8 @@ export async function POST(request: Request): Promise<Response> {
                 email,
                 password: hashedPassword,
                 ruolo,
-                dataAssunzione: dataAssunzione ? new Date(dataAssunzione) : null
+                dataAssunzione: dataAssunzione ? new Date(dataAssunzione) : null,
+                codiceAzienda
             }
         });
 
@@ -51,7 +52,8 @@ export async function POST(request: Request): Promise<Response> {
             dataNascita: newUser.dataNascita ? newUser.dataNascita : undefined,
             email: newUser.email ? newUser.email : undefined,
             ruolo: newUser.ruolo ? newUser.ruolo : undefined,
-            dataAssunzione: newUser.dataAssunzione ? newUser.dataAssunzione : undefined
+            dataAssunzione: newUser.dataAssunzione ? newUser.dataAssunzione : undefined,
+            codiceAzienda: newUser.codiceAzienda ? newUser.codiceAzienda : undefined
         };
 
         return NextResponse.json({

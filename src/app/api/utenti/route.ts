@@ -14,6 +14,9 @@ export async function GET(request: NextRequest) {
 
   try {
     const utenti = await prisma.utente.findMany({
+      where: {
+        codiceAzienda: user.codiceAzienda
+      },
       select: {
         matricola: true,
         nome: true,
@@ -22,6 +25,7 @@ export async function GET(request: NextRequest) {
         ruolo: true,
         dataNascita: true,
         dataAssunzione: true,
+        codiceAzienda: true,
         // Escludiamo la password per sicurezza
       }
     })

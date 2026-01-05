@@ -7,6 +7,7 @@ export interface TokenPayload {
   matricola: string;
   email: string;
   ruolo: string;
+  codiceAzienda: string;
 }
 
 export function generateToken(payload: TokenPayload): string {
