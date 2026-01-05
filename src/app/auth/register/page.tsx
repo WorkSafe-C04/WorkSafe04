@@ -112,8 +112,52 @@ export default function RegisterPage() {
     // Step 1: Dati Azienda
     const handleSubmitDatiAzienda = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formDataAzienda.partitaIva || !formDataAzienda.ragioneSociale || !formDataAzienda.sede || !formDataAzienda.recapito) {
-            message.error('Compila tutti i campi aziendali');
+
+        // Controlli specifici per Partita IVA
+        if (!formDataAzienda.partitaIva || formDataAzienda.partitaIva.trim() === '') {
+            message.error('Errore: La Partita IVA è obbligatoria');
+            return;
+        }
+        if (formDataAzienda.partitaIva.length < 11) {
+            message.error('Errore: La Partita IVA dell\'azienda è troppo corta');
+            return;
+        }
+        if (formDataAzienda.partitaIva.length > 11) {
+            message.error('Errore: La Partita IVA dell\'azienda è troppo lunga');
+            return;
+        }
+
+        // Controlli specifici per Ragione Sociale
+        if (!formDataAzienda.ragioneSociale || formDataAzienda.ragioneSociale.trim() === '') {
+            message.error('Errore: La Ragione Sociale dell\'azienda è obbligatoria');
+            return;
+        }
+        if (formDataAzienda.ragioneSociale.length > 64) {
+            message.error('Errore: La Ragione Sociale dell\'azienda è troppo lunga');
+            return;
+        }
+
+        // Controlli specifici per Sede
+        if (!formDataAzienda.sede || formDataAzienda.sede.trim() === '') {
+            message.error('Errore: La Sede dell\'azienda è obbligatoria');
+            return;
+        }
+        if (formDataAzienda.sede.length > 60) {
+            message.error('Errore: La Sede dell\'azienda è troppo lunga');
+            return;
+        }
+
+        // Controlli specifici per Recapito
+        if (!formDataAzienda.recapito || formDataAzienda.recapito.trim() === '') {
+            message.error('Errore: Il Recapito è obbligatorio');
+            return;
+        }
+        if (formDataAzienda.recapito.length < 10) {
+            message.error('Errore: Il recapito è troppo corto');
+            return;
+        }
+        if (formDataAzienda.recapito.length > 10) {
+            message.error('Errore: Il recapito è troppo lungo');
             return;
         }
 
