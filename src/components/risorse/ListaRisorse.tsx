@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   Tag,
@@ -152,6 +152,7 @@ export const ListaRisorse: React.FC = () => {
         <Select
           value={stato}
           style={{ width: 180 }}
+          disabled={!isManutentore}
           // Impedisce l'apertura della modale quando si clicca sul select
           onClick={(e) => e.stopPropagation()} 
           onChange={(value) => handleStatoChange(record.id, value)}

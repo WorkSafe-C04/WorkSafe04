@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       // cosi se c'è un risorsaId, filtra per quello altrimenti prendi tutto
       where: risorsaId ? { risorsa: parseInt(risorsaId) } : {},
 
-      orderBy: { dataCreazione: 'desc' },
+      orderBy: { id: 'desc' },
       include: {
         Allegato: true,
         Risorsa: { 
@@ -63,5 +63,71 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
-    return NextResponse.json({ success: true }); 
+  const user = requireAuth(request);
+  if (!user) {
+    return NextResponse.json(
+      { error: 'Non autorizzato. Effettua il login.' },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const formData = await request.formData();
+    const titolo = formData.get('titolo') as string;
+    const descrizione = formData.get('descrizione') as string;
+    const risorsa = formData.get('risorsa') as string;
+    const priorita = formData.get('priorita') as string;
+    const files = formData.getAll('files') as File[];
+
+    // Prepara gli allegati dai file caricati
+    const allegatiData = await Promise.all(
+      files.map(async (file) => {
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        return {
+          contenuto: buffer,
+          dimensione: BigInt(buffer.length),
+          codiceAzienda: user.codiceAzienda
+        };
+      })
+    );
+
+    // Crea la segnalazione
+    const segnalazione = await prisma.segnalazione.create({
+      data: {
+        titolo,
+        descrizione,
+        risorsa: risorsa ? BigInt(risorsa) : null,
+        matricola: user.matricola,
+        stato: 'Aperto',
+        priorita: priorita || 'Media',
+        codiceAzienda: user.codiceAzienda,
+        Allegato: allegatiData.length > 0 ? {
+          create: allegatiData
+        } : undefined
+      }
+    });
+
+    // Se c'è una risorsa associata, aggiorna il suo stato a "Segnalata"
+    if (risorsa) {
+      await prisma.risorsa.update({
+        where: { id: BigInt(risorsa) },
+        data: { stato: 'Segnalata' }
+      });
+    }
+
+    return NextResponse.json(
+      { 
+        success: true, 
+        id: segnalazione.id.toString() 
+      }, 
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error('Errore nella creazione della segnalazione:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : String(error) },
+      { status: 500 }
+    );
+  }
 }

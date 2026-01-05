@@ -18,6 +18,34 @@ model Allegato {
   Segnalazione   Segnalazione? @relation(fields: [idSegnalazione], references: [id], onDelete: Cascade)
 }
 
+model Avviso {
+  id            BigInt    @id @default(autoincrement())
+  titolo        String    @db.VarChar
+  descrizione   String?
+  dataCreazione DateTime? @default(now()) @db.Date
+  matricola     String?   @db.VarChar
+  codiceAzienda String?
+  Azienda       Azienda?  @relation(fields: [codiceAzienda], references: [codiceAzienda], onDelete: NoAction, onUpdate: NoAction)
+  Utente        Utente?   @relation(fields: [matricola], references: [matricola], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Azienda {
+  codiceAzienda  String           @id @db.VarChar
+  partitaIva     String           @db.VarChar
+  ragioneSociale String?          @db.VarChar
+  sede           String?          @db.VarChar
+  recapito       String?          @db.VarChar
+  Allegato       Allegato[]
+  Avviso         Avviso[]
+  Documentazione Documentazione[]
+  Formazione     Formazione[]
+  Quiz           Quiz[]
+  Risorsa        Risorsa[]
+  Segnalazione   Segnalazione[]
+  Utente         Utente[]
+  VideoCorso     VideoCorso[]
+}
+
 model Documentazione {
   id            BigInt      @id @default(autoincrement())
   nome          String      @db.VarChar
@@ -103,6 +131,7 @@ model Segnalazione {
   dataCreazione DateTime?  @default(now()) @db.Date
   stato         String?
   priorita      String?    @db.VarChar
+  codiceAzienda String?
   Allegato      Allegato[]
   Azienda       Azienda?   @relation(fields: [codiceAzienda], references: [codiceAzienda], onDelete: NoAction, onUpdate: NoAction)
   Utente        Utente?    @relation(fields: [matricola], references: [matricola], onDelete: NoAction)
@@ -138,32 +167,4 @@ model VideoCorso {
   codiceAzienda String?     @db.VarChar
   Azienda       Azienda?    @relation(fields: [codiceAzienda], references: [codiceAzienda], onDelete: NoAction, onUpdate: NoAction)
   Formazione    Formazione? @relation(fields: [formazione], references: [id], onDelete: NoAction)
-}
-
-model Avviso {
-  id            BigInt    @id @default(autoincrement())
-  titolo        String    @db.VarChar
-  descrizione   String?
-  dataCreazione DateTime? @default(now()) @db.Date
-  matricola     String?   @db.VarChar
-  codiceAzienda String?
-  Azienda       Azienda?  @relation(fields: [codiceAzienda], references: [codiceAzienda], onDelete: NoAction, onUpdate: NoAction)
-  Utente        Utente?   @relation(fields: [matricola], references: [matricola], onDelete: NoAction, onUpdate: NoAction)
-}
-
-model Azienda {
-  codiceAzienda  String           @id @db.VarChar
-  partitaIva     String           @db.VarChar
-  ragioneSociale String?          @db.VarChar
-  sede           String?          @db.VarChar
-  recapito       String?          @db.VarChar
-  Allegato       Allegato[]
-  Avviso         Avviso[]
-  Documentazione Documentazione[]
-  Formazione     Formazione[]
-  Quiz           Quiz[]
-  Risorsa        Risorsa[]
-  Segnalazione   Segnalazione[]
-  Utente         Utente[]
-  VideoCorso     VideoCorso[]
 }
