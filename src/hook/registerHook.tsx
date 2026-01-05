@@ -9,16 +9,7 @@ export const useRegister = () => {
     const [error, setError] = useState<string | null>(null);
     const [user, setUser] = useState<UtenteNoPass | null>(null);
 
-    const register = async (userData: {
-        matricola: string;
-        nome?: string;
-        cognome?: string;
-        dataNascita?: string;
-        email: string;
-        password: string;
-        ruolo?: string;
-        dataAssunzione?: string;
-    }) => {
+    const register = async (userData: any) => {
         try {
             setLoading(true);
             setError(null);
