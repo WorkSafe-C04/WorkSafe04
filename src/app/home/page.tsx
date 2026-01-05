@@ -2,8 +2,9 @@
 import Carosello from "@/components/home/Carosello";
 import ListaAvvisi from "@/components/home/ListaAvvisi";
 import ListaSegnalazioni from "@/components/home/ListaSegnalazioni";
+import { GestioneDipendenti } from "@/components/home/GestioneDipendenti";
 import { Tabs } from 'antd';
-import { BellOutlined, WarningOutlined } from '@ant-design/icons';
+import { BellOutlined, WarningOutlined, UserOutlined } from '@ant-design/icons';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
@@ -11,8 +12,23 @@ export default function HomePage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('1');
+  const [isDatoreLavoro, setIsDatoreLavoro] = useState(false);
   const tabsRef = useRef<any>(null);
-  const items = [
+  
+  useEffect(() => {
+    // Verifica se l'utente è Datore Di Lavoro
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const userData = JSON.parse(userStr);
+        setIsDatoreLavoro(userData.ruolo === 'DatoreDiLavoro');
+      } catch (err) {
+        console.error('Errore nel parsing dei dati utente', err);
+      }
+    }
+  }, []);
+  
+  const baseItems = [
     {
       key: '1',
       label: (
@@ -34,6 +50,21 @@ export default function HomePage() {
       children: <ListaAvvisi />,
     },
   ];
+  
+  // Aggiungi il tab Gestione Dipendenti solo per Datore Di Lavoro
+  const items = isDatoreLavoro ? [
+    ...baseItems,
+    {
+      key: '3',
+      label: (
+        <span>
+          <UserOutlined />
+          Gestione Dipendenti
+        </span>
+      ),
+      children: <GestioneDipendenti />,
+    },
+  ] : baseItems;
 
   useEffect(() => {
     // Prima priorità: localStorage (click da notifica)

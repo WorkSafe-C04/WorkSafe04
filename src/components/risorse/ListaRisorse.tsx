@@ -36,6 +36,20 @@ type Segnalazione = {
 
 export const ListaRisorse: React.FC = () => {
   const { risorse, loading, refresh, handleStatoChange } = useRisorseTable();
+  const [isManutentore, setIsManutentore] = useState(false);
+
+  useEffect(() => {
+    // Legge i dati dell'utente dal localStorage
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const userData = JSON.parse(userStr);
+        setIsManutentore(userData.ruolo === 'Manutentore');
+      } catch (err) {
+        console.error('Errore nel parsing dei dati utente', err);
+      }
+    }
+  }, []);
 
   const [open, setOpen] = useState(false);
   const [selectedRisorsa, setSelectedRisorsa] = useState<Risorsa | null>(null);

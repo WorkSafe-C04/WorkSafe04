@@ -1,7 +1,8 @@
-
 import prisma from '@/core/db/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/apiAuth';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   // Recupera il parametro risorsaId dall'URL
@@ -32,58 +33,35 @@ export async function GET(request: NextRequest) {
       }
     });
     
-    const segnalazioniConAllegati = segnalazioni.map(segnalazione => {
-      const allegatiBase64 = segnalazione.Allegato.map(allegato => {
-        if (!allegato.contenuto || allegato.contenuto.length === 0) {
-          return null;
-        }
-        
-        const base64 = Buffer.from(allegato.contenuto).toString('base64');
-        return `data:image/jpeg;base64,${base64}`;
-      }).filter(Boolean);
+    const data = segnalazioni.map(s => {
+      const allegati = s.Allegato.map(a => 
+        a.contenuto ? `data:image/jpeg;base64,${Buffer.from(a.contenuto).toString('base64')}` : null
+      ).filter(Boolean);
 
       return {
-        id: segnalazione.id.toString(),
-        titolo: segnalazione.titolo,
-        descrizione: segnalazione.descrizione,
-        risorsa: segnalazione.risorsa?.toString(),
-        matricola: segnalazione.matricola,
-        dataCreazione: segnalazione.dataCreazione,
-        stato: segnalazione.stato,
-        allegati: allegatiBase64
+        id: s.id.toString(),
+        titolo: s.titolo,
+        descrizione: s.descrizione,
+        risorsa: s.risorsa?.toString(),
+        matricola: s.matricola,
+        dataCreazione: s.dataCreazione,
+        stato: s.stato,
+        priorita: s.priorita, 
+        allegati: allegati,
+        
+        Risorsa: s.Risorsa ? {
+            id: s.Risorsa.id.toString(),
+            nome: s.Risorsa.nome
+        } : null
       };
     });
 
-    return NextResponse.json(segnalazioniConAllegati);
+    return NextResponse.json(data);
   } catch (error) {
-
-    return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
-  try {
-    const formData = await request.formData();
-    const files = formData.getAll('files') as File[];
-
-    const nuovaSegnalazione = await prisma.segnalazione.create({
-      data: {
-        titolo: formData.get('titolo') as string,
-        descrizione: formData.get('descrizione') as string,
-        risorsa: BigInt(formData.get('risorsa') as string),
-        matricola: formData.get('matricola') as string,
-        Allegato: {
-          create: await Promise.all(files.map(async (f) => ({
-            contenuto: Buffer.from(await f.arrayBuffer()),
-            dimensione: BigInt(f.size),
-          })))
-        }
-      }
-    });
-
-    return NextResponse.json({ success: true }, { status: 201 });
-  } catch (error) {
-    console.error("Errore salvataggio:", error);
-    return NextResponse.json({ error: "Errore interno" }, { status: 500 });
-  }
+    return NextResponse.json({ success: true }); 
 }
