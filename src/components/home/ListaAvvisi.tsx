@@ -9,35 +9,25 @@ import { useState, useEffect } from 'react';
 export default function ListaAvvisi() {
   const { data, loading, error, refetch } = useAvvisi();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [userData, setUserData] = useState<{ matricola?: string } | null>(null);
+  const [userData, setUserData] = useState<{ matricola?: string; ruolo?: string } | null>(null);
+  const [isDatoreLavoro, setIsDatoreLavoro] = useState(false);
 
   // Carica dati utente
   useEffect(() => {
     const userStr = localStorage.getItem('user');
     if (userStr) {
       try {
-        setUserData(JSON.parse(userStr));
+        const user = JSON.parse(userStr);
+        setUserData(user);
+        setIsDatoreLavoro(user.ruolo === 'DatoreDiLavoro');
       } catch (error) {
         console.error('Errore nel parsing dei dati utente:', error);
       }
     }
   }, []);
 
-  // Marca tutti gli avvisi come letti quando il componente viene montato
-  useEffect(() => {
-    const matricola = userData?.matricola;
-    if (!matricola || !data || data.length === 0) return;
-
-    const avvisiLettiStr = localStorage.getItem(`avvisiLetti_${matricola}`);
-    const avvisiLetti: string[] = avvisiLettiStr ? JSON.parse(avvisiLettiStr) : [];
-    
-    const allAvvisiIds = data
-      .filter((avviso: any) => avviso.matricola !== matricola)
-      .map((avviso: any) => avviso.id);
-    
-    const updatedAvvisiLetti = [...new Set([...avvisiLetti, ...allAvvisiIds])];
-    localStorage.setItem(`avvisiLetti_${matricola}`, JSON.stringify(updatedAvvisiLetti));
-  }, [data, userData]);
+  // RIMOSSO: Non marcare automaticamente gli avvisi come letti
+  // Ogni utente deve cliccare sulla notifica per marcarla come letta
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
@@ -55,21 +45,23 @@ export default function ListaAvvisi() {
     <div className="p-6">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <h1 className="text-2xl font-bold">Lista Avvisi</h1>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />} 
-          size="large"
-          onClick={handleOpenModal}
-          style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            border: 'none',
-            borderRadius: '10px',
-            fontWeight: '600',
-            boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
-          }}
-        >
-          Crea Avviso
-        </Button>
+        {isDatoreLavoro && (
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />} 
+            size="large"
+            onClick={handleOpenModal}
+            style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              border: 'none',
+              borderRadius: '10px',
+              fontWeight: '600',
+              boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+            }}
+          >
+            Crea Avviso
+          </Button>
+        )}
       </div>
 
       <div className="grid gap-4">

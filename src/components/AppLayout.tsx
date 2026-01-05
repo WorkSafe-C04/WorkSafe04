@@ -105,7 +105,46 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       } catch (error) {
         console.error('Errore nel parsing dei dati utente:', error);
       }
+    } else {
+      // Se non c'è utente nel localStorage, resetta tutto
+      setUserData(null);
+      setAvvisi([]);
+      setAvvisiNonLetti([]);
+      setBadgeCount(0);
+      setMenuItems(allMenuItems);
     }
+  }, []);
+
+  // Listener per il localStorage - ricarica quando viene modificato 'user'
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'user') {
+        const userStr = e.newValue;
+        if (userStr) {
+          try {
+            const user = JSON.parse(userStr);
+            setUserData(user);
+            setMenuItems(getMenuItemsByRole(user.ruolo));
+            // Ricarica gli avvisi per il nuovo utente
+            setAvvisi([]);
+            setAvvisiNonLetti([]);
+            setBadgeCount(0);
+          } catch (error) {
+            console.error('Errore nel parsing dei dati utente:', error);
+          }
+        } else {
+          // Logout effettuato
+          setUserData(null);
+          setAvvisi([]);
+          setAvvisiNonLetti([]);
+          setBadgeCount(0);
+          setMenuItems(allMenuItems);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   // Carica gli avvisi e calcola i non letti
@@ -182,12 +221,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     setBadgeCount(0);
   };
 
-  // Azzera il badge quando si entra nella sezione avvisi
-  useEffect(() => {
-    if (pathname === '/home' && badgeCount > 0) {
-      markAllAvvisiAsRead();
-    }
-  }, [pathname]);
+  // RIMOSSO: Non azzera automaticamente il badge quando si entra nella home
+  // Ogni utente deve cliccare singolarmente sulle notifiche per marcarle come lette
+  // useEffect(() => {
+  //   if (pathname === '/home' && badgeCount > 0) {
+  //     markAllAvvisiAsRead();
+  //   }
+  // }, [pathname]);
 
   const handleMenuClick = (e: any) => {
     const routeMap: Record<string, string> = {
@@ -259,6 +299,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       try {
         await logout();
         localStorage.removeItem('user');
+        // Reset di tutti gli stati per evitare conflitti tra account
+        setUserData(null);
+        setAvvisi([]);
+        setAvvisiNonLetti([]);
+        setBadgeCount(0);
+        setMenuItems(allMenuItems);
         message.success('Logout effettuato con successo');
         router.push('/auth/login');
       } catch (error) {
