@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Table, Tag, Select, Card, Button } from 'antd';
 import { useRisorseTable, getTipoIcon, getTipoColor } from '@/hook/risorseHook';
 import { Risorsa } from '@/model/risorsa';
@@ -9,6 +9,20 @@ const { Option } = Select;
 
 export const ListaRisorse: React.FC = () => {
   const { risorse, loading, refresh, handleStatoChange } = useRisorseTable();
+  const [isManutentore, setIsManutentore] = useState(false);
+
+  useEffect(() => {
+    // Legge i dati dell'utente dal localStorage
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const userData = JSON.parse(userStr);
+        setIsManutentore(userData.ruolo === 'Manutentore');
+      } catch (err) {
+        console.error('Errore nel parsing dei dati utente', err);
+      }
+    }
+  }, []);
 
   const columns = [
     {
@@ -88,18 +102,43 @@ export const ListaRisorse: React.FC = () => {
       dataIndex: 'stato',
       key: 'stato',
       render: (stato: string, record: Risorsa) => (
-        <Select
-          defaultValue={stato}
-          style={{ width: 180 }}
-          size="large"
-          onChange={(value) => handleStatoChange(record.id, value)}
-          status={stato === 'Guasto' ? 'error' : stato === 'In Manutenzione' ? 'warning' : ''}
-        >
-          <Option value="Disponibile">✅ Disponibile</Option>
-          <Option value="In Manutenzione">⚠️ In Manutenzione</Option>
-          <Option value="Guasto">❌ Guasto</Option>
-          <Option value="Dismesso">⛔ Dismesso</Option>
-        </Select>
+        isManutentore ? (
+          <Select
+            defaultValue={stato}
+            value={stato}
+            style={{ width: 180 }}
+            size="large"
+            onChange={(value) => handleStatoChange(record.id, value)}
+            status={stato === 'Guasto' ? 'error' : stato === 'In Manutenzione' ? 'warning' : stato === 'Segnalata' ? 'warning' : ''}
+          >
+            <Option value="Disponibile">✅ Disponibile</Option>
+            <Option value="In Manutenzione">⚠️ In Manutenzione</Option>
+            <Option value="Segnalata">🚨 Segnalata</Option>
+          </Select>
+        ) : (
+          <Tag
+            color={
+              stato === 'Disponibile' ? 'success' :
+                stato === 'In Manutenzione' ? 'warning' :
+
+                  stato === 'Segnalata' ? 'orange' :
+                    'default'
+            }
+            style={{
+              fontSize: '14px',
+              padding: '6px 14px',
+              borderRadius: '10px',
+              fontWeight: '600'
+            }}
+          >
+            {stato === 'Disponibile' && '✅'}
+            {stato === 'In Manutenzione' && '⚠️'}
+            {stato === 'Guasto' && '❌'}
+            {stato === 'Segnalata' && '🚨'}
+            {stato === 'Dismesso' && '⛔'}
+            {' '}{stato}
+          </Tag>
+        )
       ),
     },
   ];

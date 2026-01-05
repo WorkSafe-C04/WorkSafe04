@@ -68,22 +68,36 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
+    const risorsaId = formData.get('risorsa') as string;
 
-    const nuovaSegnalazione = await prisma.segnalazione.create({
-      data: {
-        titolo: formData.get('titolo') as string,
-        descrizione: formData.get('descrizione') as string,
-        risorsa: BigInt(formData.get('risorsa') as string),
-        matricola: formData.get('matricola') as string,
-        codiceAzienda: user.codiceAzienda,
-        Allegato: {
-          create: await Promise.all(files.map(async (f) => ({
-            contenuto: Buffer.from(await f.arrayBuffer()),
-            dimensione: BigInt(f.size),
-            codiceAzienda: user.codiceAzienda
-          })))
+    // Crea la segnalazione e aggiorna lo stato della risorsa in una transazione
+    const result = await prisma.$transaction(async (prisma) => {
+      // Crea la segnalazione
+      const nuovaSegnalazione = await prisma.segnalazione.create({
+        data: {
+          titolo: formData.get('titolo') as string,
+          descrizione: formData.get('descrizione') as string,
+          risorsa: BigInt(risorsaId),
+          matricola: formData.get('matricola') as string,
+          stato: 'Aperta',
+          codiceAzienda: user.codiceAzienda,
+          Allegato: {
+            create: await Promise.all(files.map(async (f) => ({
+              contenuto: Buffer.from(await f.arrayBuffer()),
+              dimensione: BigInt(f.size),
+              codiceAzienda: user.codiceAzienda
+            })))
+          }
         }
-      }
+      });
+
+      // Aggiorna lo stato della risorsa a "Segnalata"
+      await prisma.risorsa.update({
+        where: { id: BigInt(risorsaId) },
+        data: { stato: 'Segnalata' }
+      });
+
+      return nuovaSegnalazione;
     });
 
     return NextResponse.json({ success: true }, { status: 201 });

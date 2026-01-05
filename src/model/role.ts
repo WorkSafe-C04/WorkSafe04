@@ -1,8 +1,8 @@
 export enum Role {
-  DATORE_LAVORO = "Datore di lavoro",
+  DATORE_LAVORO = "DatoreDiLavoro",
   DIPENDENTE = "Dipendente",
   MANUTENTORE = "Manutentore",
-  RESPONSABILE_SICUREZZA = "Responsabile sicurezza"
+  RESPONSABILE_SICUREZZA = "ResponsabileSicurezza"
 }
 
 export const isValidRole = (role: string): role is Role => {

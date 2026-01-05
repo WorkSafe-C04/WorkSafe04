@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Button } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { CreateRisorsaForm } from '@/components/risorse/CreateRisorsaForm';
@@ -7,6 +7,20 @@ import { ListaRisorse } from '@/components/risorse/ListaRisorse';
 
 export default function RisorsePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isResponsabileSicurezza, setIsResponsabileSicurezza] = useState(false);
+
+  useEffect(() => {
+    // Legge i dati dell'utente dal localStorage
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const userData = JSON.parse(userStr);
+        setIsResponsabileSicurezza(userData.ruolo === 'ResponsabileSicurezza');
+      } catch (err) {
+        console.error('Errore nel parsing dei dati utente', err);
+      }
+    }
+  }, []);
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
@@ -40,27 +54,29 @@ export default function RisorsePage() {
             🔧 Gestione Risorse & Manutenzione
           </h1>
 
-          <Button
-            type="primary"
-            size="large"
-            icon={<PlusOutlined />}
-            onClick={handleOpenModal}
-            style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              border: 'none',
-              borderRadius: '10px',
-              height: '50px',
-              padding: '0 30px',
-              fontSize: '16px',
-              fontWeight: '600',
-              boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            Aggiungi Risorsa
-          </Button>
+          {isResponsabileSicurezza && (
+            <Button
+              type="primary"
+              size="large"
+              icon={<PlusOutlined />}
+              onClick={handleOpenModal}
+              style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: 'none',
+                borderRadius: '10px',
+                height: '50px',
+                padding: '0 30px',
+                fontSize: '16px',
+                fontWeight: '600',
+                boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              Aggiungi Risorsa
+            </Button>
+          )}
         </div>
 
         {/* Lista Risorse */}

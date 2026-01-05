@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Solo DatoreDiLavoro e ResponsabileSicurezza possono creare risorse
-  if (!['DatoreDiLavoro', 'ResponsabileSicurezza', 'Datore Di lavoro'].includes(user.ruolo)) {
+  if (!['DatoreDiLavoro', 'ResponsabileSicurezza'].includes(user.ruolo)) {
     return NextResponse.json(
       { error: 'Permessi insufficienti. Solo DatoreDiLavoro e ResponsabileSicurezza possono creare risorse.' },
       { status: 403 }
@@ -83,19 +83,71 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function PATCH(req: Request) {
+export async function PATCH(req: NextRequest) {
+  // Verifica autenticazione
+  const user = requireAuth(req);
+  if (!user) {
+    return NextResponse.json(
+      { error: 'Non autorizzato. Effettua il login.' },
+      { status: 401 }
+    );
+  }
+
+  // SOLO IL MANUTENTORE può modificare lo stato della risorsa
+  if (user.ruolo !== 'Manutentore') {
+    return NextResponse.json(
+      { error: 'Solo il Manutentore può modificare lo stato delle risorse' },
+      { status: 403 }
+    );
+  }
+
   try {
     const body = await req.json();
     const { id, stato } = body;
-    const MOCK_ROLE = "MANUTENTORE";
-    if (MOCK_ROLE !== "MANUTENTORE") return NextResponse.json({ error: "Non autorizzato" }, { status: 403 });
 
-    if (!id || !stato) return NextResponse.json({ error: "Dati mancanti" }, { status: 400 });
+    if (!id || !stato) {
+      return NextResponse.json({ error: "ID e stato sono obbligatori" }, { status: 400 });
+    }
 
+    // Aggiorna lo stato della risorsa
     const risorsaAggiornata = await prisma.risorsa.update({
       where: { id: BigInt(id) },
       data: { stato: stato }
     });
+
+    // Trova tutte le segnalazioni aperte per questa risorsa
+    const segnalazioniAperte = await prisma.segnalazione.findMany({
+      where: {
+        risorsa: BigInt(id),
+        stato: { notIn: ['Completata', 'Chiusa'] }
+      }
+    });
+
+    // Aggiorna lo stato delle segnalazioni in base allo stato della risorsa
+    if (segnalazioniAperte.length > 0) {
+      let nuovoStatoSegnalazione = '';
+      
+      if (stato === 'In Manutenzione') {
+        nuovoStatoSegnalazione = 'In Lavorazione';
+      } else if (stato === 'Disponibile') {
+        nuovoStatoSegnalazione = 'Completata';
+      } else if (stato === 'Guasto') {
+        nuovoStatoSegnalazione = 'In Attesa';
+      } else if (stato === 'Segnalata') {
+        nuovoStatoSegnalazione = 'Aperta';
+      }
+
+      // Aggiorna tutte le segnalazioni aperte
+      await prisma.segnalazione.updateMany({
+        where: {
+          risorsa: BigInt(id),
+          stato: { notIn: ['Completata', 'Chiusa'] }
+        },
+        data: {
+          stato: nuovoStatoSegnalazione
+        }
+      });
+    }
 
     return NextResponse.json(serializeData(risorsaAggiornata));
   } catch (error) {

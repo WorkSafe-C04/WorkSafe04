@@ -36,7 +36,7 @@ function getItem(
   } as MenuItem;
 }
 
-const items: MenuItem[] = [
+const allMenuItems: MenuItem[] = [
   getItem('Dashboard', '1', <DashboardOutlined />),
   getItem('Profilo', '2', <UserOutlined />),
   getItem('Formazione', '3', <ReadOutlined />),
@@ -44,6 +44,18 @@ const items: MenuItem[] = [
   getItem('Crea Segnalazione', '5', <FileAddOutlined />),
   getItem('Risorse', '6', <FolderOutlined />),
 ];
+
+// Funzione per filtrare i menu in base al ruolo
+const getMenuItemsByRole = (ruolo?: string): MenuItem[] => {
+  if (ruolo === 'DatoreDiLavoro') {
+    // Datore di Lavoro vede solo: Dashboard, Profilo, Crea Segnalazione, Risorse
+    return allMenuItems.filter(item => 
+      ['1', '2', '5', '6'].includes(item?.key?.toString() || '')
+    );
+  }
+  // Altri ruoli vedono tutto
+  return allMenuItems;
+};
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -53,7 +65,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const [userData, setUserData] = useState<{ nome?: string; cognome?: string; email?: string; matricola?: string } | null>(null);
+  const [userData, setUserData] = useState<{ nome?: string; cognome?: string; email?: string; matricola?: string; ruolo?: string } | null>(null);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(allMenuItems);
   const [avvisi, setAvvisi] = useState<any[]>([]);
   const [avvisiNonLetti, setAvvisiNonLetti] = useState<any[]>([]);
   const [badgeCount, setBadgeCount] = useState(0);
@@ -87,6 +100,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       try {
         const user = JSON.parse(userStr);
         setUserData(user);
+        // Imposta i menu items in base al ruolo
+        setMenuItems(getMenuItemsByRole(user.ruolo));
       } catch (error) {
         console.error('Errore nel parsing dei dati utente:', error);
       }
@@ -289,7 +304,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           theme="dark"
           selectedKeys={selectedKeys}
           mode="inline"
-          items={items}
+          items={menuItems}
           onClick={handleMenuClick}
         />
       </Sider>

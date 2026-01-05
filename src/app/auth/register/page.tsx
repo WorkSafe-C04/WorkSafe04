@@ -159,8 +159,7 @@ export default function RegisterPage() {
         }
 
         try {
-            // Prima crea l'azienda, poi il datore di lavoro
-            // Questo richiederà modifiche all'API per gestire la creazione dell'azienda
+            
             const dataRegistrazione = {
                 azienda: { ...formDataAzienda, codiceAzienda: codiceAziendaGenerato },
                 utente: { ...formDataDatore, ruolo: Role.DATORE_LAVORO, codiceAzienda: codiceAziendaGenerato }
