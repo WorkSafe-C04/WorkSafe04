@@ -12,7 +12,7 @@ export async function POST(request: Request): Promise<Response> {
 
         if (!email || !password) {
             return NextResponse.json({
-                message: "Email o password non inserite"
+                message: "Errore: inserisci email e password"
             }, { status: 400 });
         }
 
@@ -22,7 +22,7 @@ export async function POST(request: Request): Promise<Response> {
 
         if (!user) {
             return NextResponse.json({
-                message: "Email errata."
+                message: "Errore: email non registrata"
             }, { status: 401 });
         }
 
@@ -37,7 +37,7 @@ export async function POST(request: Request): Promise<Response> {
 
         if (!isPasswordValid) {
             return NextResponse.json({
-                message: "Password errata."
+                message: "Errore: password non registrata"
             }, { status: 401 });
         }
 
