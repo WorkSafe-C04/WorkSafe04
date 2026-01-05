@@ -10,7 +10,6 @@ export const registerRepository = {
         email: string;
         password: string;
         ruolo?: string;
-        dataAssunzione?: string;
     }): Promise<UtenteNoPass> => {
         const response = await axiosInstance.post('/auth/register', userData);
         return response.data.user;

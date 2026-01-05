@@ -10,7 +10,6 @@ export const registerService = {
         email: string;
         password: string;
         ruolo?: string;
-        dataAssunzione?: string;
     }): Promise<UtenteNoPass> => {
         return await registerRepository.register(userData);
     }

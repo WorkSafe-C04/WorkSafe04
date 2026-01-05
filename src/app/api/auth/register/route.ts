@@ -17,13 +17,24 @@ export async function POST(request: Request): Promise<Response> {
 
         //Controlla se l'utente esiste già
         const existingUser = await prisma.utente.findFirst({
-            where: { email }
+            where: { 
+                OR: [
+                    { email },
+                    { matricola }
+                ]
+            }
         });
 
         if (existingUser) {
-            return NextResponse.json({
-                message: "Email già registrata"
-            }, { status: 409 });
+            if(existingUser.email === email){
+                return NextResponse.json({
+                    message: "Email già registrata"
+                }, { status: 409 });
+            } else {
+                return NextResponse.json({
+                    message: "Matricola già registrata"
+                }, { status: 409 });
+            }
         }
 
         //Cripta la password
