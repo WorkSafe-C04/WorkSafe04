@@ -12,7 +12,7 @@ export async function POST(request: Request): Promise<Response> {
 
         if (!email || !password) {
             return NextResponse.json({
-                message: "Email o password non inserite"
+                message: "Errore: inserisci email e password"
             }, { status: 400 });
         }
 
@@ -22,7 +22,7 @@ export async function POST(request: Request): Promise<Response> {
 
         if (!user) {
             return NextResponse.json({
-                message: "Email errata."
+                message: "Errore: email non registrata"
             }, { status: 401 });
         }
 
@@ -37,15 +37,16 @@ export async function POST(request: Request): Promise<Response> {
 
         if (!isPasswordValid) {
             return NextResponse.json({
-                message: "Password errata."
+                message: "Errore: password non registrata"
             }, { status: 401 });
         }
 
-        // Genera il token JWT
+        // Genera il token JWT includendo il codiceAzienda
         const token = generateToken({
             matricola: user.matricola,
             email: user.email!,
-            ruolo: user.ruolo || 'Dipendente'
+            ruolo: user.ruolo || 'Dipendente',
+            codiceAzienda: user.codiceAzienda || ''
         });
 
         //Se la password è corretta, restituisce gli attributi dell'utente senza la password
@@ -56,7 +57,8 @@ export async function POST(request: Request): Promise<Response> {
             dataNascita: user.dataNascita ? user.dataNascita : undefined,
             email: user.email ? user.email : undefined,
             ruolo: user.ruolo ? user.ruolo : undefined,
-            dataAssunzione: user.dataAssunzione ? user.dataAssunzione : undefined
+            dataAssunzione: user.dataAssunzione ? user.dataAssunzione : undefined,
+            codiceAzienda: user.codiceAzienda ? user.codiceAzienda : undefined
         };
 
         const response = NextResponse.json({

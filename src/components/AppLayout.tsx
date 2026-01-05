@@ -36,7 +36,7 @@ function getItem(
   } as MenuItem;
 }
 
-const items: MenuItem[] = [
+const allMenuItems: MenuItem[] = [
   getItem('Dashboard', '1', <DashboardOutlined />),
   getItem('Profilo', '2', <UserOutlined />),
   getItem('Formazione', '3', <ReadOutlined />),
@@ -44,6 +44,18 @@ const items: MenuItem[] = [
   getItem('Crea Segnalazione', '5', <FileAddOutlined />),
   getItem('Risorse', '6', <FolderOutlined />),
 ];
+
+// Funzione per filtrare i menu in base al ruolo
+const getMenuItemsByRole = (ruolo?: string): MenuItem[] => {
+  if (ruolo === 'DatoreDiLavoro') {
+    // Datore di Lavoro vede solo: Dashboard, Profilo, Crea Segnalazione, Risorse
+    return allMenuItems.filter(item => 
+      ['1', '2', '5', '6'].includes(item?.key?.toString() || '')
+    );
+  }
+  // Altri ruoli vedono tutto
+  return allMenuItems;
+};
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -53,7 +65,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const [userData, setUserData] = useState<{ nome?: string; cognome?: string; email?: string; matricola?: string } | null>(null);
+  const [userData, setUserData] = useState<{ nome?: string; cognome?: string; email?: string; matricola?: string; ruolo?: string } | null>(null);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(allMenuItems);
   const [avvisi, setAvvisi] = useState<any[]>([]);
   const [avvisiNonLetti, setAvvisiNonLetti] = useState<any[]>([]);
   const [badgeCount, setBadgeCount] = useState(0);
@@ -87,10 +100,51 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       try {
         const user = JSON.parse(userStr);
         setUserData(user);
+        // Imposta i menu items in base al ruolo
+        setMenuItems(getMenuItemsByRole(user.ruolo));
       } catch (error) {
         console.error('Errore nel parsing dei dati utente:', error);
       }
+    } else {
+      // Se non c'è utente nel localStorage, resetta tutto
+      setUserData(null);
+      setAvvisi([]);
+      setAvvisiNonLetti([]);
+      setBadgeCount(0);
+      setMenuItems(allMenuItems);
     }
+  }, []);
+
+  // Listener per il localStorage - ricarica quando viene modificato 'user'
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'user') {
+        const userStr = e.newValue;
+        if (userStr) {
+          try {
+            const user = JSON.parse(userStr);
+            setUserData(user);
+            setMenuItems(getMenuItemsByRole(user.ruolo));
+            // Ricarica gli avvisi per il nuovo utente
+            setAvvisi([]);
+            setAvvisiNonLetti([]);
+            setBadgeCount(0);
+          } catch (error) {
+            console.error('Errore nel parsing dei dati utente:', error);
+          }
+        } else {
+          // Logout effettuato
+          setUserData(null);
+          setAvvisi([]);
+          setAvvisiNonLetti([]);
+          setBadgeCount(0);
+          setMenuItems(allMenuItems);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   // Carica gli avvisi e calcola i non letti
@@ -167,12 +221,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     setBadgeCount(0);
   };
 
-  // Azzera il badge quando si entra nella sezione avvisi
-  useEffect(() => {
-    if (pathname === '/home' && badgeCount > 0) {
-      markAllAvvisiAsRead();
-    }
-  }, [pathname]);
+  // RIMOSSO: Non azzera automaticamente il badge quando si entra nella home
+  // Ogni utente deve cliccare singolarmente sulle notifiche per marcarle come lette
+  // useEffect(() => {
+  //   if (pathname === '/home' && badgeCount > 0) {
+  //     markAllAvvisiAsRead();
+  //   }
+  // }, [pathname]);
 
   const handleMenuClick = (e: any) => {
     const routeMap: Record<string, string> = {
@@ -244,6 +299,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       try {
         await logout();
         localStorage.removeItem('user');
+        // Reset di tutti gli stati per evitare conflitti tra account
+        setUserData(null);
+        setAvvisi([]);
+        setAvvisiNonLetti([]);
+        setBadgeCount(0);
+        setMenuItems(allMenuItems);
         message.success('Logout effettuato con successo');
         router.push('/auth/login');
       } catch (error) {
@@ -289,7 +350,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           theme="dark"
           selectedKeys={selectedKeys}
           mode="inline"
-          items={items}
+          items={menuItems}
           onClick={handleMenuClick}
         />
       </Sider>
