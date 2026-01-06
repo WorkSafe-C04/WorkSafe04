@@ -10,7 +10,7 @@
     "test:chatbot": "npx tsx src/test/chatbot.test.ts",
     "test:creaSegnalazione": "npx tsx src/test/creaSegnalazione.test.ts",
     "test:registraDipendente": "npx tsx src/test/registraDipendente.test.ts",
-    "test:login" : "npx tsx src/test/login.test.ts",
+    "test:login": "npx tsx src/test/login.test.ts",
     "test:creaRisorsa": "npx tsx src/test/creaRisorsa.test.ts",
     "test:aggiornaStatoSegnalazione": "npx tsx src/test/aggiornaStatoSegnalazione.test.ts",
     "test:filtroSegnalazione": "npx tsx src/test/filtroSegnalazione.test.ts",
@@ -32,6 +32,7 @@
     "dayjs": "^1.11.19",
     "jsonwebtoken": "^9.0.3",
     "next": "16.0.8",
+    "pdf-lib": "^1.17.1",
     "pg": "^8.16.3",
     "react": "19.2.1",
     "react-dom": "19.2.1"

@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { Table, Select, DatePicker, Button, message, Tag, Card, Modal } from 'antd';
-import { UserOutlined, SaveOutlined } from '@ant-design/icons';
+import { Table, Select, DatePicker, Button, message, Tag, Card, Modal, Space } from 'antd';
+import { UserOutlined, SaveOutlined, FileTextOutlined } from '@ant-design/icons';
 import { Role } from '@/model/role';
 import dayjs from 'dayjs';
 
@@ -120,6 +120,37 @@ export const GestioneDipendenti: React.FC = () => {
     }
   };
 
+  const handleGeneraReport = async (dipendente: Dipendente) => {
+    try {
+      message.loading({ content: 'Generazione report in corso...', key: 'report' });
+      
+      const response = await fetch(`/api/report/dipendente?matricola=${dipendente.matricola}`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        // Scarica il PDF
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Report_${dipendente.nome}_${dipendente.cognome}_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        message.success({ content: 'Report generato con successo!', key: 'report' });
+      } else {
+        const error = await response.json();
+        message.error({ content: error.error || 'Errore nella generazione del report', key: 'report' });
+      }
+    } catch (error) {
+      message.error({ content: 'Errore di connessione', key: 'report' });
+    }
+  };
+
   const getRuoloColor = (ruolo?: string) => {
     switch (ruolo) {
       case Role.DATORE_LAVORO:
@@ -199,21 +230,33 @@ export const GestioneDipendenti: React.FC = () => {
     {
       title: 'Azioni',
       key: 'azioni',
-      width: 120,
+      width: 180,
       render: (text: any, record: Dipendente) => (
-        <Button
-          type="primary"
-          icon={<SaveOutlined />}
-          onClick={() => handleSave(record.matricola)}
-          disabled={!modifiche[record.matricola]}
-          style={{
-            background: modifiche[record.matricola] 
-              ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
-              : undefined
-          }}
-        >
-          Salva
-        </Button>
+        <Space size="small">
+          <Button
+            type="primary"
+            icon={<SaveOutlined />}
+            onClick={() => handleSave(record.matricola)}
+            disabled={!modifiche[record.matricola]}
+            style={{
+              background: modifiche[record.matricola] 
+                ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
+                : undefined
+            }}
+          >
+            Salva
+          </Button>
+          <Button
+            icon={<FileTextOutlined />}
+            onClick={() => handleGeneraReport(record)}
+            style={{
+              borderColor: '#667eea',
+              color: '#667eea'
+            }}
+          >
+            Report
+          </Button>
+        </Space>
       )
     }
   ];
