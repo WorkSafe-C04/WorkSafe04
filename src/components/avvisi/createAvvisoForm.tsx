@@ -30,7 +30,10 @@ export const CreateAvvisoForm: React.FC<CreateAvvisoFormProps> = ({ onSuccess })
                 <Form.Item
                     name="titolo"
                     label={<span style={{ fontWeight: '600', fontSize: '15px' }}>📝 Titolo</span>}
-                    rules={[{ required: true, message: 'Inserisci il titolo dell avviso' }]}
+                    rules={[{ required: true, message: 'Inserisci un titolo' },
+                                { min: 5, message: 'Il titolo deve contenere almeno 5 caratteri' },
+                                { max: 35, message: 'Il titolo non può superare i 35 caratteri' }
+                            ]}
                 >
                     <Input
                         size="large"
@@ -41,6 +44,10 @@ export const CreateAvvisoForm: React.FC<CreateAvvisoFormProps> = ({ onSuccess })
                 <Form.Item
                     name="contenuto"
                     label={<span style={{ fontWeight: '600', fontSize: '15px' }}>📄 Descrizione</span>}
+                    rules={[{ required: true, message: 'Inserisci una descrizione' },
+                                { min: 20, message: 'La descrizione deve contenere almeno 20 caratteri' },
+                                { max: 150, message: 'La descrizione non può superare i 150 caratteri' }
+                            ]}
                 >
                     <TextArea
                         rows={4}
