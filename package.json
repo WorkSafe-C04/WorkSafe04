@@ -16,7 +16,8 @@
     "test:filtroSegnalazione": "npx tsx src/test/filtroSegnalazione.test.ts",
     "test:assegnaRuolo": "npx tsx src/test/assegnaRuolo.test.ts",
     "test:generazioneReport": "npx tsx src/test/generazioneReport.test.ts",
-    "test:validaFormazione": "npx tsx src/test/validaFormazione.test.ts"
+    "test:validaFormazione": "npx tsx src/test/validaFormazione.test.ts",
+    "test:registra-azienda": "npx tsx src/test/registraAzienda.test.ts"
   },
   "dependencies": {
     "@ai-sdk/cerebras": "^1.0.5",
