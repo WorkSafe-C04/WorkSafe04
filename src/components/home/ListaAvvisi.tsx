@@ -10,7 +10,7 @@ export default function ListaAvvisi() {
   const { data, loading, error, refetch } = useAvvisi();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userData, setUserData] = useState<{ matricola?: string; ruolo?: string } | null>(null);
-  const [isDatoreLavoro, setIsDatoreLavoro] = useState(false);
+  const [canCreateAvviso, setCanCreateAvviso] = useState(false);
 
   // Carica dati utente
   useEffect(() => {
@@ -19,7 +19,8 @@ export default function ListaAvvisi() {
       try {
         const user = JSON.parse(userStr);
         setUserData(user);
-        setIsDatoreLavoro(user.ruolo === 'DatoreDiLavoro');
+        // Permette la creazione dell'avviso sia al Datore di Lavoro che al Responsabile della Sicurezza
+        setCanCreateAvviso(user.ruolo === 'DatoreDiLavoro' || user.ruolo === 'ResponsabileSicurezza');
       } catch (error) {
         console.error('Errore nel parsing dei dati utente:', error);
       }
@@ -45,7 +46,7 @@ export default function ListaAvvisi() {
     <div className="p-6">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <h1 className="text-2xl font-bold">Lista Avvisi</h1>
-        {isDatoreLavoro && (
+        {canCreateAvviso && (
           <Button 
             type="primary" 
             icon={<PlusOutlined />} 
