@@ -215,40 +215,70 @@ export default function FormazioneDettaglioPage() {
           }
           key="quiz"
         >
-          <Row gutter={[16, 16]}>
-            {formazione.quiz?.map((quiz) => (
-              <Col xs={24} md={12} key={quiz.id}>
-                <Card
-                  hoverable
-                  style={{ height: '100%' }}
-                  actions={[
-                    <Button type="primary" icon={<EditOutlined />}>
-                      Inizia Quiz
-                    </Button>,
-                  ]}
-                >
-                  <Card.Meta
-                    avatar={
-                      <EditOutlined
-                        style={{ fontSize: '32px', color: '#52c41a' }}
-                      />
-                    }
-                    title={quiz.nome}
-                    description={
-                      <>
-                        <div>
-                          <ClockCircleOutlined /> Durata: {quiz.durata} minuti
-                        </div>
-                        <div>
-                          <TrophyOutlined /> Punteggio: {quiz.punteggio || 0}/100
-                        </div>
-                      </>
-                    }
-                  />
-                </Card>
-              </Col>
-            ))}
-          </Row>
+          {formazione.quiz && formazione.quiz.length > 0 ? (
+            <Row gutter={[16, 16]}>
+              {formazione.quiz.map((quiz) => (
+                <Col xs={24} md={12} key={quiz.id}>
+                  <Card
+                    hoverable
+                    style={{ height: '100%' }}
+                    actions={[
+                      <Button 
+                        type="primary" 
+                        icon={<EditOutlined />}
+                        onClick={() => {
+                          const quizId = quiz.id.toString();
+                          const formazioneId = formazione.id.toString();
+                          const nomeQuiz = encodeURIComponent(quiz.nome);
+                          window.location.href = `/quiz/${quizId}?formazione=${formazioneId}&nome=${nomeQuiz}`;
+                        }}
+                      >
+                        Inizia Quiz
+                      </Button>,
+                    ]}
+                  >
+                    <Card.Meta
+                      avatar={
+                        <EditOutlined
+                          style={{ fontSize: '32px', color: '#52c41a' }}
+                        />
+                      }
+                      title={quiz.nome}
+                      description={
+                        <>
+                          <div>
+                            <ClockCircleOutlined /> Durata: {quiz.durata} minuti
+                          </div>
+                          <div>
+                            <TrophyOutlined /> Punteggio: {quiz.punteggio || 0}/100
+                          </div>
+                        </>
+                      }
+                    />
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          ) : (
+            <Card
+              style={{
+                textAlign: 'center',
+                padding: '60px 20px',
+                background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+                border: '2px dashed #52c41a',
+              }}
+            >
+              <CheckCircleOutlined
+                style={{ fontSize: '64px', color: '#52c41a', marginBottom: '16px' }}
+              />
+              <Title level={3} style={{ color: '#52c41a', marginBottom: '8px' }}>
+                🎉 Tutti i quiz sono stati completati con successo!
+              </Title>
+              <Paragraph style={{ fontSize: '16px', color: '#666' }}>
+                Hai superato tutti i quiz di questa formazione. Ottimo lavoro!
+              </Paragraph>
+            </Card>
+          )}
         </TabPane>
       </Tabs>
     </div>

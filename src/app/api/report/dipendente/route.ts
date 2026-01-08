@@ -62,6 +62,31 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    // Recupera le formazioni superate del dipendente
+    const formazioniSuperate = await prisma.gestioneFormazione.findMany({
+      where: {
+        matricola,
+        stato: 'Superato',
+      },
+      include: {
+        Formazione: {
+          select: {
+            argomento: true,
+            numeroCorsi: true,
+          },
+        },
+        Quiz: {
+          select: {
+            nome: true,
+            durata: true,
+          },
+        },
+      },
+      orderBy: {
+        id: 'desc',
+      },
+    });
+
     // Recupera informazioni azienda
     const azienda = await prisma.azienda.findUnique({
       where: { codiceAzienda: user.codiceAzienda },
@@ -195,6 +220,45 @@ export async function GET(request: NextRequest) {
         }
         
         yPosition -= 15;
+      }
+    }
+
+    // Sezione Formazioni Superate
+    yPosition -= 30;
+    checkAndAddPage(80);
+    
+    drawText('Formazioni Superate', 50, 14, timesRomanBold, rgb(0.2, 0.2, 0.2));
+    yPosition -= 20;
+
+    if (formazioniSuperate.length === 0) {
+      drawText('Nessuna formazione completata.', 50, 10, timesRomanFont, rgb(0.4, 0.4, 0.4));
+      yPosition -= 20;
+    } else {
+      drawText(`Totale formazioni completate: ${formazioniSuperate.length}`, 50, 10, timesRomanFont);
+      yPosition -= 25;
+
+      // Lista formazioni
+      for (let i = 0; i < formazioniSuperate.length; i++) {
+        const form = formazioniSuperate[i];
+        
+        // Verifica se c'è spazio
+        checkAndAddPage(70);
+
+        drawText(`${i + 1}. ${form.Formazione?.argomento || 'Formazione'}`, 50, 11, timesRomanBold, rgb(0.2, 0.6, 0.2));
+        yPosition -= 15;
+        
+        if (form.Quiz) {
+          drawText(`   Quiz: ${form.Quiz.nome}`, 50, 9, timesRomanFont, rgb(0.4, 0.4, 0.4));
+          yPosition -= 12;
+          
+          if (form.Quiz.durata) {
+            drawText(`   Durata: ${form.Quiz.durata} minuti`, 50, 9, timesRomanFont, rgb(0.4, 0.4, 0.4));
+            yPosition -= 12;
+          }
+        }
+        
+        drawText(`   Stato: ${form.stato || 'Superato'}`, 50, 9, timesRomanFont, rgb(0.2, 0.6, 0.2));
+        yPosition -= 20;
       }
     }
 

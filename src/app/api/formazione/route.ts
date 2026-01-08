@@ -31,7 +31,16 @@ export async function GET(request: NextRequest) {
         },
         include: {
           VideoCorso: true,
-          Quiz: true,
+          Quiz: {
+            where: {
+              GestioneFormazione: {
+                none: {
+                  matricola: user.matricola,
+                  stato: 'Superato'
+                }
+              }
+            }
+          },
           Documentazione: true
         }
       });
