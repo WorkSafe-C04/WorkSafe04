@@ -29,8 +29,10 @@ export default function LoginPage() {
             }
             message.success('Login riuscito!');
             window.location.href = '/home';
-        } catch (err) {
-            message.error(error || 'Credenziali non valide');
+        } catch (err: any) {
+            const errorMessage = err?.message || error || 'Credenziali non valide';
+            message.error(errorMessage);
+            console.error('Errore login:', err);
         }
     };
 
@@ -154,6 +156,21 @@ export default function LoginPage() {
                     {loading ? 'Accesso in corso...' : 'Accedi'}
                 </button>
             </form>
+
+            {error && (
+                <div style={{
+                    marginTop: '16px',
+                    padding: '12px 16px',
+                    background: '#fff2f0',
+                    border: '1px solid #ffccc7',
+                    borderRadius: '8px',
+                    color: '#cf1322',
+                    fontSize: '14px',
+                    textAlign: 'center',
+                }}>
+                    {error}
+                </div>
+            )}
 
             <div style={{ marginTop: '24px', textAlign: 'center' }}>
                 <p style={{ color: '#666', fontSize: '14px' }}>
