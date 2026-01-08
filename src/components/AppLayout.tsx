@@ -67,6 +67,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [userData, setUserData] = useState<{ nome?: string; cognome?: string; email?: string; matricola?: string; ruolo?: string; codiceAzienda?: string } | null>(null);
   const [aziendaNome, setAziendaNome] = useState<string>('');
+  const [aziendaCodice, setAziendaCodice] = useState<string>('');
   const [menuItems, setMenuItems] = useState<MenuItem[]>(allMenuItems);
   const [avvisi, setAvvisi] = useState<any[]>([]);
   const [avvisiNonLetti, setAvvisiNonLetti] = useState<any[]>([]);
@@ -111,6 +112,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             .then(data => {
               if (data && data.ragioneSociale) {
                 setAziendaNome(data.ragioneSociale);
+                setAziendaCodice(data.codiceAzienda);
               }
             })
             .catch(err => console.error('Errore nel recupero azienda:', err));
@@ -125,6 +127,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       setAvvisiNonLetti([]);
       setBadgeCount(0);
       setAziendaNome('');
+      setAziendaCodice('');
       setMenuItems(allMenuItems);
     }
   }, []);
@@ -151,6 +154,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 .then(data => {
                   if (data && data.ragioneSociale) {
                     setAziendaNome(data.ragioneSociale);
+                    setAziendaCodice(data.codiceAzienda);
                   }
                 })
                 .catch(err => console.error('Errore nel recupero azienda:', err));
@@ -165,6 +169,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           setAvvisiNonLetti([]);
           setBadgeCount(0);
           setAziendaNome('');
+          setAziendaCodice('');
           setMenuItems(allMenuItems);
         }
       }
@@ -393,7 +398,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 borderLeft: '3px solid #1890ff',
               }}
             >
-              {aziendaNome}
+              <div>{aziendaNome}</div>
+              {aziendaCodice && (
+                <div style={{ fontSize: '11px', opacity: 0.7, marginTop: '4px' }}>
+                  Codice: {aziendaCodice}
+                </div>
+              )}
             </div>
           </div>
         )}

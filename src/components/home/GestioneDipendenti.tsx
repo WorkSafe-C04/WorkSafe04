@@ -7,6 +7,12 @@ import dayjs from 'dayjs';
 
 const { Option } = Select;
 
+interface StatoFormazione {
+  formazioniCompletate: number;
+  formazioniTotali: number;
+  percentuale: number;
+}
+
 interface Dipendente {
   matricola: string;
   nome?: string;
@@ -15,6 +21,7 @@ interface Dipendente {
   ruolo?: string;
   dataNascita?: Date;
   dataAssunzione?: Date;
+  statoFormazione?: StatoFormazione;
 }
 
 export const GestioneDipendenti: React.FC = () => {
@@ -46,7 +53,27 @@ export const GestioneDipendenti: React.FC = () => {
         const data = await response.json();
         // Filtra per escludere l'utente corrente (datore di lavoro)
         const dipendentiFiltrati = data.filter((dip: Dipendente) => dip.matricola !== matricolaCorrente);
-        setDipendenti(dipendentiFiltrati);
+        
+        // Recupera lo stato della formazione per ogni dipendente
+        const dipendentiConFormazione = await Promise.all(
+          dipendentiFiltrati.map(async (dip: Dipendente) => {
+            try {
+              const formResponse = await fetch(`/api/utenti/${dip.matricola}/formazioni/stato`, {
+                credentials: 'include',
+              });
+              if (formResponse.ok) {
+                const statoFormazione = await formResponse.json();
+                return { ...dip, statoFormazione };
+              }
+              return dip;
+            } catch (error) {
+              console.error(`Errore nel recupero formazioni per ${dip.matricola}:`, error);
+              return dip;
+            }
+          })
+        );
+        
+        setDipendenti(dipendentiConFormazione);
       } else {
         message.error('Errore nel caricamento dei dipendenti');
       }
@@ -185,6 +212,47 @@ export const GestioneDipendenti: React.FC = () => {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
+    },
+    {
+      title: 'Stato Formazione',
+      key: 'statoFormazione',
+      width: 200,
+      render: (text: any, record: Dipendente) => {
+        if (!record.statoFormazione) {
+          return <span style={{ color: '#999' }}>N/A</span>;
+        }
+        const { formazioniCompletate, formazioniTotali, percentuale } = record.statoFormazione;
+        const getColor = (perc: number) => {
+          if (perc === 100) return '#52c41a';
+          if (perc >= 70) return '#1890ff';
+          if (perc >= 40) return '#faad14';
+          return '#ff4d4f';
+        };
+        return (
+          <div>
+            <div style={{ marginBottom: '4px' }}>
+              {formazioniCompletate}/{formazioniTotali} completate
+            </div>
+            <div style={{ 
+              width: '100%', 
+              height: '8px', 
+              background: '#f0f0f0', 
+              borderRadius: '4px',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                width: `${percentuale}%`,
+                height: '100%',
+                background: getColor(percentuale),
+                transition: 'width 0.3s ease'
+              }} />
+            </div>
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
+              {percentuale}%
+            </div>
+          </div>
+        );
+      }
     },
     {
       title: 'Ruolo Attuale',
