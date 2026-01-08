@@ -34,7 +34,7 @@ function caricaVariabiliEnv() {
   }
 }
 
-//SIMULAZIONE LOGICA DI BUSINESS
+//LOGICA DI BUSINESS
 async function filtroSegnalazioni(prisma: any, params: any, sessione: any) {
   
   if (!sessione || !sessione.isValid) {
@@ -48,12 +48,16 @@ async function filtroSegnalazioni(prisma: any, params: any, sessione: any) {
     throw new Error("Il testo di ricerca è troppo lungo");
   }
 
-  // TC_2 & TC_3
+  // TC_2 & TC_3: Controllo Data
   if (dataCreazione) {
     const data = dayjs(dataCreazione);
-    if (!data.isValid()) {
+    
+    const isFormatValid = data.isValid() && data.format('YYYY-MM-DD') === dataCreazione;
+    
+    if (!isFormatValid) {
         throw new Error("Formato data non valido");
     }
+
     if (data.isAfter(dayjs(), 'day')) {
         throw new Error("La data selezionata non può essere nel futuro");
     }
@@ -95,11 +99,10 @@ async function filtroSegnalazioni(prisma: any, params: any, sessione: any) {
     where: whereClause
   });
 }
-
 //ESECUZIONE TEST SUITE
 async function runTestSuite() {
   console.log("\n╔════════════════════════════════════════════════════════╗");
-  console.log("║   TEST SUITE: FILTRO SEGNALAZIONI (TC 1-8 COMPLETI)    ║");
+  console.log("║   TEST SUITE: FILTRO SEGNALAZIONI                      ║");
   console.log("╚════════════════════════════════════════════════════════╝");
 
   caricaVariabiliEnv();
@@ -112,19 +115,12 @@ async function runTestSuite() {
   let idSegnalazioneCreated: any = null;
 
   try {
-    console.log("🛠️  SETUP: Creazione dati nel DB per TC_8...");
-    
-    //Crea la risorsa
+    console.log("🛠️  SETUP: Creazione dati nel DB...");
     const risorsa = await prisma.risorsa.create({
-      data: { 
-          nome: "Trapano", 
-          tipo: "Strumento", 
-          stato: "DISPONIBILE" 
-      } as any
+      data: { nome: "Trapano", tipo: "Strumento", stato: "DISPONIBILE" } as any
     });
     idRisorsaCreated = risorsa.id;
 
-    //Crea la segnalazione
     const segnalazione = await prisma.segnalazione.create({
       data: {
         titolo: "Guasto",
@@ -148,7 +144,7 @@ async function runTestSuite() {
       },
       {
         id: "TC_FiltraSegn_2",
-        obi: "Data non valida",
+        obi: "Data non valida (31-02)",
         inputs: { dataCreazione: "2025-02-31" }, 
         sessione: { isValid: true },
         oracolo: "Formato data non valido",
@@ -233,7 +229,7 @@ async function runTestSuite() {
 
       } catch (error: any) {
         if (tc.tipo === "ERROR") {
-          if (error.message.includes(tc.oracolo) || (tc.id === "TC_FiltraSegn_2")) {
+          if (error.message.includes(tc.oracolo)) {
              console.log(`✅ PASSATO`);
              passedCount++;
           } else {
@@ -256,7 +252,6 @@ async function runTestSuite() {
     console.error("\n🟥 ERRORE DI SISTEMA:", error);
     process.exit(1);
   } finally {
-    // PULIZIA
     if (idSegnalazioneCreated) {
       await prisma.segnalazione.delete({ where: { id: idSegnalazioneCreated } as any }).catch(() => {});
     }
