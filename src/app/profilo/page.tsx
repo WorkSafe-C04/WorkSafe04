@@ -218,9 +218,9 @@ export default function ProfiloPage() {
                             )}
                         </Space>
                     </div>
-                    <Button type="primary" icon={<EditOutlined />} size="large">
+                    {/* <Button type="primary" icon={<EditOutlined />} size="large">
                         Modifica Profilo
-                    </Button>
+                    </Button> */}
                 </div>
             </Card>
 
