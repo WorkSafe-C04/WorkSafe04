@@ -62,7 +62,24 @@ export async function POST(req: NextRequest) {
 
     let bufferFile = null;
     if (body.schedaAllegata) {
+      // Pulizia Base64 (rimozione header 'data:image/xyz;base64,')
       const base64Clean = body.schedaAllegata.split(',')[1] || body.schedaAllegata;
+      
+      // =================================================================
+      // 🛡️ IMPLEMENTAZIONE CATEGORY PARTITION (TC_RIS_1)
+      // Controllo Dimensione File: Limite 1GB (1 * 1024 * 1024 * 1024 bytes)
+      // =================================================================
+      const sizeInBytes = Buffer.byteLength(base64Clean, 'base64');
+      const LIMIT_1GB = 1 * 1024 * 1024 * 1024; // 1 Gigabyte
+
+      if (sizeInBytes > LIMIT_1GB) {
+        return NextResponse.json(
+          { error: "File troppo grande. Il limite massimo è 1GB." },
+          { status: 413 } // 413 Payload Too Large
+        );
+      }
+      // =================================================================
+
       bufferFile = Buffer.from(base64Clean, 'base64');
     }
 
@@ -138,15 +155,17 @@ export async function PATCH(req: NextRequest) {
       }
 
       // Aggiorna tutte le segnalazioni aperte
-      await prisma.segnalazione.updateMany({
-        where: {
-          risorsa: BigInt(id),
-          stato: { notIn: ['Completata', 'Chiusa'] }
-        },
-        data: {
-          stato: nuovoStatoSegnalazione
-        }
-      });
+      if (nuovoStatoSegnalazione) {
+          await prisma.segnalazione.updateMany({
+            where: {
+              risorsa: BigInt(id),
+              stato: { notIn: ['Completata', 'Chiusa'] }
+            },
+            data: {
+              stato: nuovoStatoSegnalazione
+            }
+          });
+      }
     }
 
     return NextResponse.json(serializeData(risorsaAggiornata));
