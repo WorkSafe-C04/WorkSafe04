@@ -34,7 +34,17 @@ type Segnalazione = {
   stato?: string;
 };
 
-export const ListaRisorse: React.FC = () => {
+interface ListaRisorseProps {
+  filtroNome?: string;
+  filtroDescrizione?: string;
+  filtroStato?: string;
+}
+
+export const ListaRisorse: React.FC<ListaRisorseProps> = ({ 
+  filtroNome = '', 
+  filtroDescrizione = '', 
+  filtroStato 
+}) => {
   const { risorse, loading, refresh, handleStatoChange } = useRisorseTable();
   const [isManutentore, setIsManutentore] = useState(false);
 
@@ -171,9 +181,37 @@ export const ListaRisorse: React.FC = () => {
       ),
     },
   ];
+
+  // Filtra le risorse in base ai criteri
+  const risorseFiltrate = risorse.filter((risorsa) => {
+    const matchNome = !filtroNome || 
+      risorsa.nome?.toLowerCase().includes(filtroNome.toLowerCase());
+    
+    const matchDescrizione = !filtroDescrizione || 
+      risorsa.descrizione?.toLowerCase().includes(filtroDescrizione.toLowerCase());
+    
+    const matchStato = !filtroStato || risorsa.stato === filtroStato;
+
+    return matchNome && matchDescrizione && matchStato;
+  });
+
   return (
     <Card
-      title="📋 Inventario Risorse"
+      title={
+        <span>
+          📋 Inventario Risorse
+          {(filtroNome || filtroDescrizione || filtroStato) && (
+            <span style={{ 
+              marginLeft: '12px', 
+              fontSize: '14px', 
+              fontWeight: 'normal',
+              color: '#1890ff'
+            }}>
+              ({risorseFiltrate.length} di {risorse.length} risorse)
+            </span>
+          )}
+        </span>
+      }
       extra={
         <Button
           icon={<SyncOutlined />}
@@ -185,7 +223,7 @@ export const ListaRisorse: React.FC = () => {
       }
     >
       <Table
-        dataSource={risorse}
+        dataSource={risorseFiltrate}
         columns={columns}
         rowKey={(record) => record.id.toString()}
         loading={loading}

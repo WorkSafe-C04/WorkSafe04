@@ -1,13 +1,19 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Modal, Button } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Modal, Button, Input, Select } from 'antd';
+import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { CreateRisorsaForm } from '@/components/risorse/CreateRisorsaForm';
 import { ListaRisorse } from '@/components/risorse/ListaRisorse';
+
+const { Search } = Input;
+const { Option } = Select;
 
 export default function RisorsePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isResponsabileSicurezza, setIsResponsabileSicurezza] = useState(false);
+  const [filtroNome, setFiltroNome] = useState('');
+  const [filtroDescrizione, setFiltroDescrizione] = useState('');
+  const [filtroStato, setFiltroStato] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     // Legge i dati dell'utente dal localStorage
@@ -79,8 +85,66 @@ export default function RisorsePage() {
           )}
         </div>
 
+        {/* Filtri */}
+        <div style={{
+          background: '#f5f5f5',
+          padding: '24px',
+          borderRadius: '8px',
+          marginBottom: '24px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: '16px'
+        }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#666' }}>
+              🔍 Cerca per Nome
+            </label>
+            <Search
+              placeholder="Filtra per nome..."
+              allowClear
+              value={filtroNome}
+              onChange={(e) => setFiltroNome(e.target.value)}
+              prefix={<SearchOutlined />}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#666' }}>
+              📝 Cerca per Descrizione
+            </label>
+            <Search
+              placeholder="Filtra per descrizione..."
+              allowClear
+              value={filtroDescrizione}
+              onChange={(e) => setFiltroDescrizione(e.target.value)}
+              prefix={<SearchOutlined />}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#666' }}>
+              ⚡ Filtra per Stato
+            </label>
+            <Select
+              style={{ width: '100%' }}
+              placeholder="Seleziona stato..."
+              allowClear
+              value={filtroStato}
+              onChange={(value) => setFiltroStato(value)}
+            >
+              <Option value="Disponibile">✅ Disponibile</Option>
+              <Option value="In Manutenzione">⚠️ In Manutenzione</Option>
+              <Option value="Segnalato">⛔ Segnalato</Option>
+            </Select>
+          </div>
+        </div>
+
         {/* Lista Risorse */}
-        <ListaRisorse />
+        <ListaRisorse 
+          filtroNome={filtroNome}
+          filtroDescrizione={filtroDescrizione}
+          filtroStato={filtroStato}
+        />
 
         {/* Modale per Creazione Risorsa */}
         <Modal
