@@ -24,7 +24,11 @@ interface Dipendente {
   statoFormazione?: StatoFormazione;
 }
 
-export const GestioneDipendenti: React.FC = () => {
+interface GestioneDipendentiProps {
+  viewMode?: 'datoreLavoro' | 'responsabileSicurezza';
+}
+
+export const GestioneDipendenti: React.FC<GestioneDipendentiProps> = ({ viewMode = 'datoreLavoro' }) => {
   const [dipendenti, setDipendenti] = useState<Dipendente[]>([]);
   const [loading, setLoading] = useState(false);
   const [modifiche, setModifiche] = useState<Record<string, { ruolo?: string; dataAssunzione?: Date }>>({});
@@ -51,8 +55,10 @@ export const GestioneDipendenti: React.FC = () => {
       });
       if (response.ok) {
         const data = await response.json();
-        // Filtra per escludere l'utente corrente (datore di lavoro)
-        const dipendentiFiltrati = data.filter((dip: Dipendente) => dip.matricola !== matricolaCorrente);
+        // Filtra per escludere l'utente corrente e tutti i DatoreDiLavoro
+        const dipendentiFiltrati = data.filter((dip: Dipendente) => 
+          dip.matricola !== matricolaCorrente && dip.ruolo !== Role.DATORE_LAVORO
+        );
         
         // Recupera lo stato della formazione per ogni dipendente
         const dipendentiConFormazione = await Promise.all(
@@ -254,7 +260,7 @@ export const GestioneDipendenti: React.FC = () => {
         );
       }
     },
-    {
+    ...(viewMode === 'datoreLavoro' ? [{
       title: 'Ruolo Attuale',
       dataIndex: 'ruolo',
       key: 'ruoloAttuale',
@@ -263,8 +269,8 @@ export const GestioneDipendenti: React.FC = () => {
           {ruolo || 'Non assegnato'}
         </Tag>
       )
-    },
-    {
+    }] : []),
+    ...(viewMode === 'datoreLavoro' ? [{
       title: 'Modifica Ruolo',
       key: 'modificaRuolo',
       width: 220,
@@ -280,8 +286,8 @@ export const GestioneDipendenti: React.FC = () => {
           <Option value={Role.MANUTENTORE}>{Role.MANUTENTORE}</Option>
         </Select>
       )
-    },
-    {
+    }] : []),
+    ...(viewMode === 'datoreLavoro' ? [{
       title: 'Data Assunzione',
       key: 'dataAssunzione',
       width: 200,
@@ -294,8 +300,8 @@ export const GestioneDipendenti: React.FC = () => {
           onChange={(date) => handleDataAssunzioneChange(record.matricola, date)}
         />
       )
-    },
-    {
+    }] : []),
+    ...(viewMode === 'datoreLavoro' ? [{
       title: 'Azioni',
       key: 'azioni',
       width: 180,
@@ -326,7 +332,7 @@ export const GestioneDipendenti: React.FC = () => {
           </Button>
         </Space>
       )
-    }
+    }] : [])
   ];
 
   return (
@@ -334,7 +340,7 @@ export const GestioneDipendenti: React.FC = () => {
       title={
         <span style={{ fontSize: '20px', fontWeight: '600' }}>
           <UserOutlined style={{ marginRight: '8px' }} />
-          Gestione Dipendenti
+          {viewMode === 'responsabileSicurezza' ? 'Visualizza stato formazione' : 'Gestione Dipendenti'}
         </span>
       }
       style={{

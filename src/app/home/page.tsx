@@ -3,6 +3,7 @@ import Carosello from "@/components/home/Carosello";
 import ListaAvvisi from "@/components/home/ListaAvvisi";
 import ListaSegnalazioni from "@/components/home/ListaSegnalazioni";
 import { GestioneDipendenti } from "@/components/home/GestioneDipendenti";
+import { Role } from "@/model/role";
 import { Tabs } from 'antd';
 import { BellOutlined, WarningOutlined, UserOutlined } from '@ant-design/icons';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -13,15 +14,17 @@ export default function HomePage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('1');
   const [isDatoreLavoro, setIsDatoreLavoro] = useState(false);
+  const [isResponsabileSicurezza, setIsResponsabileSicurezza] = useState(false);
   const tabsRef = useRef<any>(null);
   
   useEffect(() => {
-    // Verifica se l'utente è Datore Di Lavoro
+    // Verifica ruolo utente
     const userStr = localStorage.getItem('user');
     if (userStr) {
       try {
         const userData = JSON.parse(userStr);
-        setIsDatoreLavoro(userData.ruolo === 'DatoreDiLavoro');
+        setIsDatoreLavoro(userData.ruolo === Role.DATORE_LAVORO);
+        setIsResponsabileSicurezza(userData.ruolo === Role.RESPONSABILE_SICUREZZA);
       } catch (err) {
         console.error('Errore nel parsing dei dati utente', err);
       }
@@ -51,10 +54,11 @@ export default function HomePage() {
     },
   ];
   
-  // Aggiungi il tab Gestione Dipendenti solo per Datore Di Lavoro
-  const items = isDatoreLavoro ? [
-    ...baseItems,
-    {
+  // Aggiungi il tab Gestione Dipendenti per Datore Di Lavoro e ResponsabileSicurezza
+  let items = [...baseItems];
+  
+  if (isDatoreLavoro) {
+    items.push({
       key: '3',
       label: (
         <span>
@@ -62,9 +66,20 @@ export default function HomePage() {
           Gestione Dipendenti
         </span>
       ),
-      children: <GestioneDipendenti />,
-    },
-  ] : baseItems;
+      children: <GestioneDipendenti viewMode="datoreLavoro" />,
+    });
+  } else if (isResponsabileSicurezza) {
+    items.push({
+      key: '3',
+      label: (
+        <span>
+          <UserOutlined />
+          Visualizza stato formazione
+        </span>
+      ),
+      children: <GestioneDipendenti viewMode="responsabileSicurezza" />,
+    });
+  }
 
   useEffect(() => {
     // Prima priorità: localStorage (click da notifica)
