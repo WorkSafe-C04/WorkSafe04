@@ -9,6 +9,8 @@ import Link from 'next/link';
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [emailError, setEmailError] = useState('');
+    const [passwordError, setPasswordError] = useState('');
     const { login, loading, error } = useLogin();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -65,12 +67,22 @@ export default function LoginPage() {
                         <input
                             type="email"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                setEmail(value);
+                                if (!value) {
+                                    setEmailError('Email richiesta');
+                                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                                    setEmailError('Inserisci un indirizzo email valido');
+                                } else {
+                                    setEmailError('');
+                                }
+                            }}
                             placeholder="email@example.com"
                             style={{
                                 width: '100%',
                                 padding: '12px 16px 12px 44px',
-                                border: '2px solid #e0e0e0',
+                                border: `2px solid ${emailError ? '#ff4d4f' : '#e0e0e0'}`,
                                 borderRadius: '8px',
                                 fontSize: '15px',
                                 transition: 'all 0.3s',
@@ -78,8 +90,8 @@ export default function LoginPage() {
                                 boxSizing: 'border-box',
                                 color: '#333',
                             }}
-                            onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                            onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                            onFocus={(e) => e.target.style.borderColor = emailError ? '#ff4d4f' : '#667eea'}
+                            onBlur={(e) => e.target.style.borderColor = emailError ? '#ff4d4f' : '#e0e0e0'}
                         />
                         <style jsx>{`
                             input::placeholder {
@@ -88,6 +100,7 @@ export default function LoginPage() {
                             }
                         `}</style>
                     </div>
+                    {emailError && <p style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '4px', marginBottom: '0' }}>{emailError}</p>}
                 </div>
 
                 <div style={{ marginBottom: '24px' }}>
@@ -99,12 +112,20 @@ export default function LoginPage() {
                         <input
                             type="password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                setPassword(value);
+                                if (!value) {
+                                    setPasswordError('Password richiesta');
+                                } else {
+                                    setPasswordError('');
+                                }
+                            }}
                             placeholder="••••••••"
                             style={{
                                 width: '100%',
                                 padding: '12px 16px 12px 44px',
-                                border: '2px solid #e0e0e0',
+                                border: `2px solid ${passwordError ? '#ff4d4f' : '#e0e0e0'}`,
                                 borderRadius: '8px',
                                 fontSize: '15px',
                                 transition: 'all 0.3s',
@@ -112,8 +133,8 @@ export default function LoginPage() {
                                 boxSizing: 'border-box',
                                 color: '#333',
                             }}
-                            onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                            onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                            onFocus={(e) => e.target.style.borderColor = passwordError ? '#ff4d4f' : '#667eea'}
+                            onBlur={(e) => e.target.style.borderColor = passwordError ? '#ff4d4f' : '#e0e0e0'}
                         />
                         <style jsx>{`
                             input::placeholder {
@@ -122,23 +143,24 @@ export default function LoginPage() {
                             }
                         `}</style>
                     </div>
+                    {passwordError && <p style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '4px', marginBottom: '0' }}>{passwordError}</p>}
                 </div>
 
                 <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || !!emailError || !!passwordError || !email || !password}
                     style={{
                         width: '100%',
                         padding: '14px',
-                        background: loading ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        background: (loading || emailError || passwordError || !email || !password) ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                         color: 'white',
                         border: 'none',
                         borderRadius: '8px',
                         fontSize: '16px',
                         fontWeight: '600',
-                        cursor: loading ? 'not-allowed' : 'pointer',
+                        cursor: (loading || emailError || passwordError || !email || !password) ? 'not-allowed' : 'pointer',
                         transition: 'all 0.3s',
-                        boxShadow: loading ? 'none' : '0 4px 15px rgba(102, 126, 234, 0.4)',
+                        boxShadow: (loading || emailError || passwordError || !email || !password) ? 'none' : '0 4px 15px rgba(102, 126, 234, 0.4)',
                     }}
                     onMouseEnter={(e) => {
                         if (!loading) {

@@ -42,7 +42,10 @@ export default function RegisterPage() {
     
     const [codiceAziendaGenerato, setCodiceAziendaGenerato] = useState('');
     const [stepAzienda, setStepAzienda] = useState(1); // 1 = Dati Azienda, 2 = Account Datore
-    const [passwordError, setPasswordError] = useState('');
+    const [errors, setErrors] = useState({
+        dipendente: { email: '', password: '', dataNascita: '' },
+        datore: { email: '', password: '', dataNascita: '' }
+    });
     const { register, loading } = useRegister();
     const router = useRouter();
 
@@ -94,10 +97,8 @@ export default function RegisterPage() {
         // Controllo password
         const passwordValidation = validatePassword(formDataDipendente.password);
         if (passwordValidation) {
-            setPasswordError(passwordValidation);
+            message.error(passwordValidation);
             return;
-        } else {
-            setPasswordError('');
         }
 
         try {
@@ -152,10 +153,8 @@ export default function RegisterPage() {
         // Controllo password
         const passwordValidation = validatePassword(formDataDatore.password);
         if (passwordValidation) {
-            setPasswordError(passwordValidation);
+            message.error(passwordValidation);
             return;
-        } else {
-            setPasswordError('');
         }
 
         try {
@@ -175,6 +174,39 @@ export default function RegisterPage() {
 
     const handleInputChangeDipendente = (field: string, value: any) => {
         setFormDataDipendente(prev => ({ ...prev, [field]: value }));
+        
+        // Validazione in tempo reale
+        const newErrors = { ...errors.dipendente };
+        
+        if (field === 'email') {
+            if (!value) {
+                newErrors.email = 'Email richiesta';
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                newErrors.email = 'Inserisci un indirizzo email valido';
+            } else {
+                newErrors.email = '';
+            }
+        }
+        
+        if (field === 'password') {
+            const passwordValidation = validatePassword(value);
+            newErrors.password = passwordValidation || '';
+        }
+        
+        if (field === 'dataNascita') {
+            if (value) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const birthDate = new Date(value);
+                if (birthDate >= today) {
+                    newErrors.dataNascita = 'La data di nascita deve essere precedente a oggi';
+                } else {
+                    newErrors.dataNascita = '';
+                }
+            }
+        }
+        
+        setErrors(prev => ({ ...prev, dipendente: newErrors }));
     };
 
     const handleInputChangeAzienda = (field: string, value: any) => {
@@ -183,6 +215,39 @@ export default function RegisterPage() {
 
     const handleInputChangeDatore = (field: string, value: any) => {
         setFormDataDatore(prev => ({ ...prev, [field]: value }));
+        
+        // Validazione in tempo reale
+        const newErrors = { ...errors.datore };
+        
+        if (field === 'email') {
+            if (!value) {
+                newErrors.email = 'Email richiesta';
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                newErrors.email = 'Inserisci un indirizzo email valido';
+            } else {
+                newErrors.email = '';
+            }
+        }
+        
+        if (field === 'password') {
+            const passwordValidation = validatePassword(value);
+            newErrors.password = passwordValidation || '';
+        }
+        
+        if (field === 'dataNascita') {
+            if (value) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const birthDate = new Date(value);
+                if (birthDate >= today) {
+                    newErrors.dataNascita = 'La data di nascita deve essere precedente a oggi';
+                } else {
+                    newErrors.dataNascita = '';
+                }
+            }
+        }
+        
+        setErrors(prev => ({ ...prev, datore: newErrors }));
     };
 
     const inputStyle = {
@@ -265,11 +330,12 @@ export default function RegisterPage() {
                                 type="date"
                                 value={formDataDipendente.dataNascita}
                                 onChange={(e) => handleInputChangeDipendente('dataNascita', e.target.value)}
-                                style={inputStyle}
-                                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                                onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                                style={{...inputStyle, border: `2px solid ${errors.dipendente.dataNascita ? '#ff4d4f' : '#e0e0e0'}`}}
+                                onFocus={(e) => e.target.style.borderColor = errors.dipendente.dataNascita ? '#ff4d4f' : '#667eea'}
+                                onBlur={(e) => e.target.style.borderColor = errors.dipendente.dataNascita ? '#ff4d4f' : '#e0e0e0'}
                             />
                         </div>
+                        {errors.dipendente.dataNascita && <p style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '4px', marginBottom: '0' }}>{errors.dipendente.dataNascita}</p>}
                     </div>
 
                     <div style={{ marginBottom: '20px' }}>
@@ -283,11 +349,12 @@ export default function RegisterPage() {
                                 value={formDataDipendente.email}
                                 onChange={(e) => handleInputChangeDipendente('email', e.target.value)}
                                 placeholder="email@example.com"
-                                style={inputStyle}
-                                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                                onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                                style={{...inputStyle, border: `2px solid ${errors.dipendente.email ? '#ff4d4f' : '#e0e0e0'}`}}
+                                onFocus={(e) => e.target.style.borderColor = errors.dipendente.email ? '#ff4d4f' : '#667eea'}
+                                onBlur={(e) => e.target.style.borderColor = errors.dipendente.email ? '#ff4d4f' : '#e0e0e0'}
                             />
                         </div>
+                        {errors.dipendente.email && <p style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '4px', marginBottom: '0' }}>{errors.dipendente.email}</p>}
                     </div>
 
                     <div style={{ marginBottom: '20px' }}>
@@ -301,12 +368,12 @@ export default function RegisterPage() {
                                 value={formDataDipendente.password}
                                 onChange={(e) => handleInputChangeDipendente('password', e.target.value)}
                                 placeholder="••••••••"
-                                style={inputStyle}
-                                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                                onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                                style={{...inputStyle, border: `2px solid ${errors.dipendente.password ? '#ff4d4f' : '#e0e0e0'}`}}
+                                onFocus={(e) => e.target.style.borderColor = errors.dipendente.password ? '#ff4d4f' : '#667eea'}
+                                onBlur={(e) => e.target.style.borderColor = errors.dipendente.password ? '#ff4d4f' : '#e0e0e0'}
                             />
                         </div>
-                        {activeTab === 'dipendente' && passwordError && <p style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{passwordError}</p>}
+                        {errors.dipendente.password && <p style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '4px', marginBottom: '0' }}>{errors.dipendente.password}</p>}
                     </div>
 
                     <div style={{ marginBottom: '24px' }}>
@@ -535,11 +602,12 @@ export default function RegisterPage() {
                                 type="date"
                                 value={formDataDatore.dataNascita}
                                 onChange={(e) => handleInputChangeDatore('dataNascita', e.target.value)}
-                                style={inputStyle}
-                                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                                onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                                style={{...inputStyle, border: `2px solid ${errors.datore.dataNascita ? '#ff4d4f' : '#e0e0e0'}`}}
+                                onFocus={(e) => e.target.style.borderColor = errors.datore.dataNascita ? '#ff4d4f' : '#667eea'}
+                                onBlur={(e) => e.target.style.borderColor = errors.datore.dataNascita ? '#ff4d4f' : '#e0e0e0'}
                             />
                         </div>
+                        {errors.datore.dataNascita && <p style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '4px', marginBottom: '0' }}>{errors.datore.dataNascita}</p>}
                     </div>
 
                     <div style={{ marginBottom: '20px' }}>
@@ -553,11 +621,12 @@ export default function RegisterPage() {
                                 value={formDataDatore.email}
                                 onChange={(e) => handleInputChangeDatore('email', e.target.value)}
                                 placeholder="email@example.com"
-                                style={inputStyle}
-                                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                                onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                                style={{...inputStyle, border: `2px solid ${errors.datore.email ? '#ff4d4f' : '#e0e0e0'}`}}
+                                onFocus={(e) => e.target.style.borderColor = errors.datore.email ? '#ff4d4f' : '#667eea'}
+                                onBlur={(e) => e.target.style.borderColor = errors.datore.email ? '#ff4d4f' : '#e0e0e0'}
                             />
                         </div>
+                        {errors.datore.email && <p style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '4px', marginBottom: '0' }}>{errors.datore.email}</p>}
                     </div>
 
                     <div style={{ marginBottom: '24px' }}>
@@ -571,12 +640,12 @@ export default function RegisterPage() {
                                 value={formDataDatore.password}
                                 onChange={(e) => handleInputChangeDatore('password', e.target.value)}
                                 placeholder="••••••••"
-                                style={inputStyle}
-                                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                                onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                                style={{...inputStyle, border: `2px solid ${errors.datore.password ? '#ff4d4f' : '#e0e0e0'}`}}
+                                onFocus={(e) => e.target.style.borderColor = errors.datore.password ? '#ff4d4f' : '#667eea'}
+                                onBlur={(e) => e.target.style.borderColor = errors.datore.password ? '#ff4d4f' : '#e0e0e0'}
                             />
                         </div>
-                        {activeTab === 'azienda' && passwordError && <p style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{passwordError}</p>}
+                        {errors.datore.password && <p style={{ color: '#ff4d4f', fontSize: '12px', marginTop: '4px', marginBottom: '0' }}>{errors.datore.password}</p>}
                     </div>
 
                     <div style={{ display: 'flex', gap: '12px' }}>
