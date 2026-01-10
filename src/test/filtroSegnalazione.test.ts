@@ -34,7 +34,7 @@ function caricaVariabiliEnv() {
   }
 }
 
-//LOGICA DI BUSINESS
+//LOGICA DI BUSINESS 
 async function filtroSegnalazioni(prisma: any, params: any, sessione: any) {
   
   if (!sessione || !sessione.isValid) {
@@ -43,8 +43,8 @@ async function filtroSegnalazioni(prisma: any, params: any, sessione: any) {
 
   const { titolo, dataCreazione, nomeRisorsa, stato, priorita } = params;
 
-  // TC_1
-  if (titolo && titolo.length > 30) {
+  // TC_1: Controllo Titolo
+  if (titolo && titolo.length > 50) {
     throw new Error("Il testo di ricerca è troppo lungo");
   }
 
@@ -63,7 +63,7 @@ async function filtroSegnalazioni(prisma: any, params: any, sessione: any) {
     }
   }
 
-  // TC_4
+  // TC_4: Risorsa
   if (nomeRisorsa) {
     const risorsaTrovata = await prisma.risorsa.findFirst({
       where: { nome: nomeRisorsa }
@@ -73,19 +73,19 @@ async function filtroSegnalazioni(prisma: any, params: any, sessione: any) {
     }
   }
 
-  // TC_5
+  // TC_5: Stato
   const statiValidi = ['APERTA', 'IN_CORSO', 'RISOLTA', 'CHIUSA']; 
   if (stato && !statiValidi.includes(stato)) {
     throw new Error("Valore stato non valido");
   }
 
-  // TC_6
+  // TC_6: Priorità
   const prioritaValide = ['ALTA', 'MEDIA', 'BASSA'];
   if (priorita && !prioritaValide.includes(priorita)) {
     throw new Error("Valore priorità non valido");
   }
 
-  // TC_8: Query
+  // TC_8: 
   const whereClause: any = {};
   if (titolo && titolo !== "(Nessun filtro)") whereClause.titolo = { contains: titolo };
   if (stato && stato !== "(Nessun filtro)") whereClause.stato = stato;
@@ -94,15 +94,15 @@ async function filtroSegnalazioni(prisma: any, params: any, sessione: any) {
   if (nomeRisorsa && nomeRisorsa !== "(Nessun filtro)") {
       whereClause.Risorsa = { nome: nomeRisorsa };
   }
-
   return await prisma.segnalazione.findMany({
     where: whereClause
   });
 }
-//ESECUZIONE TEST SUITE
+
+// --- 3. ESECUZIONE TEST SUITE ---
 async function runTestSuite() {
   console.log("\n╔════════════════════════════════════════════════════════╗");
-  console.log("║   TEST SUITE: FILTRO SEGNALAZIONI                      ║");
+  console.log("║   TEST SUITE: FILTRO SEGNALAZIONI (Allineato FE)       ║");
   console.log("╚════════════════════════════════════════════════════════╝");
 
   caricaVariabiliEnv();
@@ -117,27 +117,27 @@ async function runTestSuite() {
   try {
     console.log("🛠️  SETUP: Creazione dati nel DB...");
     const risorsa = await prisma.risorsa.create({
-      data: { nome: "Trapano", tipo: "Strumento", stato: "DISPONIBILE" } as any
+      data: { nome: "TrapanoTest", tipo: "Strumento", stato: "DISPONIBILE" } as any
     });
     idRisorsaCreated = risorsa.id;
 
     const segnalazione = await prisma.segnalazione.create({
       data: {
-        titolo: "Guasto",
-        descrizione: "Il trapano non funziona",
+        titolo: "Guasto Test Unitario",
+        descrizione: "Descrizione di prova",
         stato: "APERTA",
         priorita: "ALTA",
         risorsa: risorsa.id
       } as any
     });
     idSegnalazioneCreated = segnalazione.id;
-    console.log(`✅ Dati creati: Risorsa ID ${idRisorsaCreated}, Segnalazione ID ${idSegnalazioneCreated}\n`);
+    console.log(`✅ Dati creati correttamente.\n`);
 
     const testCases = [
       {
         id: "TC_FiltraSegn_1",
-        obi: "Titolo > 30 caratteri",
-        inputs: { titolo: "TestoEstremamenteLungoCheSuperaSicuramenteITrentaCaratteri" },
+        obi: "Titolo > 50 caratteri", 
+        inputs: { titolo: "QuestaStringaÈSicuramenteMaggioreDiCinquantaCaratteri12345" },
         sessione: { isValid: true },
         oracolo: "Il testo di ricerca è troppo lungo",
         tipo: "ERROR"
@@ -161,7 +161,7 @@ async function runTestSuite() {
       {
         id: "TC_FiltraSegn_4",
         obi: "Risorsa inesistente",
-        inputs: { nomeRisorsa: "Macchinario_Inesistente" },
+        inputs: { nomeRisorsa: "Macchinario_Che_Non_Esiste" },
         sessione: { isValid: true },
         oracolo: "Risorsa non trovata nel sistema",
         tipo: "ERROR"
@@ -169,7 +169,7 @@ async function runTestSuite() {
       {
         id: "TC_FiltraSegn_5",
         obi: "Stato non valido",
-        inputs: { stato: "STATO_INVALIDO" },
+        inputs: { stato: "STATO_FANTASMA" },
         sessione: { isValid: true },
         oracolo: "Valore stato non valido",
         tipo: "ERROR"
@@ -177,7 +177,7 @@ async function runTestSuite() {
       {
         id: "TC_FiltraSegn_6",
         obi: "Priorità non valida",
-        inputs: { priorita: "URGENTISSIMA" },
+        inputs: { priorita: "SUPER_URGENTE" },
         sessione: { isValid: true },
         oracolo: "Valore priorità non valido",
         tipo: "ERROR"
@@ -192,10 +192,10 @@ async function runTestSuite() {
       },
       {
         id: "TC_FiltraSegn_8",
-        obi: "Tutto corretto",
+        obi: "Happy Path (Tutto OK)",
         inputs: { 
           titolo: "Guasto", 
-          risorsa: "Trapano",
+          risorsa: "TrapanoTest",
           priorita: "ALTA",
           stato: "APERTA",
           dataCreazione: dayjs().format('YYYY-MM-DD') 
@@ -221,10 +221,10 @@ async function runTestSuite() {
             console.log("✅ PASSATO");
             passedCount++;
           } else {
-            console.log("❌ FALLITO (Record non trovato)");
+            console.log("❌ FALLITO (Record creato non trovato nei risultati)");
           }
         } else {
-          console.log(`❌ FALLITO (Atteso errore "${tc.oracolo}", ma successo)`);
+          console.log(`❌ FALLITO (Atteso errore "${tc.oracolo}", ma la funzione ha avuto successo)`);
         }
 
       } catch (error: any) {
@@ -233,10 +233,10 @@ async function runTestSuite() {
              console.log(`✅ PASSATO`);
              passedCount++;
           } else {
-             console.log(`❌ FALLITO (Messaggio errato: "${error.message}")`);
+             console.log(`❌ FALLITO (Messaggio errore diverso. Ricevuto: "${error.message}")`);
           }
         } else {
-          console.log(`❌ FALLITO (Errore imprevisto: ${error.message})`);
+          console.log(`❌ FALLITO (Errore imprevisto non gestito: ${error.message})`);
         }
       }
     }
@@ -249,7 +249,7 @@ async function runTestSuite() {
     }
 
   } catch (error) {
-    console.error("\n🟥 ERRORE DI SISTEMA:", error);
+    console.error("\n🟥 ERRORE CRITICO DI SISTEMA:", error);
     process.exit(1);
   } finally {
     if (idSegnalazioneCreated) {
@@ -260,7 +260,7 @@ async function runTestSuite() {
     }
     await prisma.$disconnect();
     await pool.end();
-    console.log("🧹 Ambiente ripulito.");
+    console.log("🧹 Ambiente ripulito e connessioni chiuse.");
   }
 }
 

@@ -154,8 +154,9 @@ export default function ListaSegnalazioni() {
         <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px' }}>Segnalazioni</h2>
         
         <Card size="small" style={{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-          <Row gutter={[16, 16]} align="middle">
-            <Col xs={24} md={6}>
+          <Row gutter={[16, 16]} align="top"> 
+           
+           <Col xs={24} md={6}>
               <div style={{ marginBottom: 4, fontSize: 12, color: '#888' }}>Cerca nel titolo</div>
               <Input
                 placeholder="Es. Guasto..."
@@ -163,7 +164,14 @@ export default function ListaSegnalazioni() {
                 value={filterTitolo}
                 onChange={e => setFilterTitolo(e.target.value)}
                 allowClear
+                maxLength={50} 
+                status={filterTitolo.length === 50 ? 'warning' : ''} 
               />
+              {filterTitolo.length === 50 && (
+                <div style={{ color: '#faad14', fontSize: '11px', marginTop: '2px' }}>
+                   ⚠️ Limite caratteri raggiunto (50)
+                </div>
+              )}
             </Col>
             
             <Col xs={24} md={6}>
@@ -215,6 +223,7 @@ export default function ListaSegnalazioni() {
                 format="DD/MM/YYYY"
                 value={filterDate}
                 onChange={(dates) => setFilterDate(dates as any)}
+                disabledDate={(current) => current && current > dayjs().endOf('day')} 
               />
             </Col>
 
