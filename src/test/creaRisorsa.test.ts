@@ -35,10 +35,14 @@ async function creaRisorsa(prisma: any, params: any, sessione: any) {
 
     const { nome, tipo, schedaAllegata, descrizione } = params;
 
-    // TC_RIS_2: Campi Obbligatori (Nome e Tipo)
-    // Se manca anche solo uno dei due (o entrambi), deve dare errore.
-    if (!nome || !tipo) {
-        throw new Error("Errore: Nome e Tipo sono obbligatori");
+    // TC_RIS_2: Controllo specifico per il Nome
+    if (!nome) {
+        throw new Error("Errore: Nome è obbligatorio");
+    }
+
+    // TC_RIS_3: Controllo specifico per il Tipo
+    if (!tipo) {
+        throw new Error("Errore: Tipo è obbligatorio");
     }
 
     // TC_RIS_1: Controllo Dimensione File (Limite 1GB)
@@ -76,7 +80,7 @@ async function creaRisorsa(prisma: any, params: any, sessione: any) {
 // --- ESECUZIONE TEST SUITE ---
 async function runTestSuite() {
     console.log("\n╔════════════════════════════════════════════════════════╗");
-    console.log("║    TEST SUITE: CREAZIONE RISORSA (TC_RIS 1–3)          ║");
+    console.log("║    TEST SUITE: CREAZIONE RISORSA (TC_RIS 1–4)          ║");
     console.log("╚════════════════════════════════════════════════════════╝\n");
 
     caricaVariabiliEnv();
@@ -92,7 +96,7 @@ async function runTestSuite() {
     const testCases = [
         {
             id: "TC_RIS_1",
-            frame: "TT4, DC1, NR1, SS1",
+            frame: "TT4, DC1, NR1, SS1", // Robustezza, File Grande, Errore, Sessione OK
             obi: "File > 1GB",
             inputs: { 
                 nome: "Trapano Heavy", 
@@ -105,20 +109,33 @@ async function runTestSuite() {
         },
         {
             id: "TC_RIS_2",
-            frame: "TT1, DC4, NR1, SS1",
-            obi: "Campi obbligatori mancanti",
+            frame: "TT1, DC4, NR1, SS1", // Funzionale, Dato Mancante, Errore, Sessione OK
+            obi: "Nome Mancante",
             inputs: { 
-                nome: null,  // Utente lascia vuoto il nome
-                tipo: null,  // Utente non seleziona il tipo
+                nome: null, 
+                tipo: "Macchinario", 
                 schedaAllegata: null 
             },
             sessione: { isValid: true },
-            oracolo: "Errore: Nome e Tipo sono obbligatori",
+            oracolo: "Errore: Nome è obbligatorio",
             tipo: "ERROR"
         },
         {
             id: "TC_RIS_3",
-            frame: "TT1, DC5, NR1, SS1",
+            frame: "TT1, DC4, NR1, SS1", // Funzionale, Dato Mancante, Errore, Sessione OK
+            obi: "Tipo Mancante",
+            inputs: { 
+                nome: "Trapano NoTipo", 
+                tipo: null, 
+                schedaAllegata: null 
+            },
+            sessione: { isValid: true },
+            oracolo: "Errore: Tipo è obbligatorio",
+            tipo: "ERROR"
+        },
+        {
+            id: "TC_RIS_4",
+            frame: "TT1, DC5, NR1, SS1", // Funzionale, Dati Validi, Successo, Sessione OK
             obi: "Inserimento Corretto",
             inputs: { 
                 nome: `TRAPANO_OK_${Date.now()}`, 
