@@ -73,19 +73,19 @@ async function filtroSegnalazioni(prisma: any, params: any, sessione: any) {
     }
   }
 
-  // TC_5: Stato (AGGIORNATO ALLA REALTA' IMPLEMENTATIVA)
+  // TC_5: Stato 
   const statiValidi = ['APERTA', 'IN_LAVORAZIONE', 'COMPLETATA']; 
   if (stato && !statiValidi.includes(stato)) {
     throw new Error("Valore stato non valido");
   }
 
-  // TC_6: Priorità
+  // TC_6: 
   const prioritaValide = ['ALTA', 'MEDIA', 'BASSA'];
   if (priorita && !prioritaValide.includes(priorita)) {
     throw new Error("Valore priorità non valido");
   }
 
-  // TC_8: Query
+  // TC_8: 
   const whereClause: any = {};
   if (titolo && titolo !== "(Nessun filtro)") whereClause.titolo = { contains: titolo };
   if (stato && stato !== "(Nessun filtro)") whereClause.stato = stato;
@@ -99,10 +99,10 @@ async function filtroSegnalazioni(prisma: any, params: any, sessione: any) {
   });
 }
 
-// --- 3. ESECUZIONE TEST SUITE ---
+//ESECUZIONE TEST SUITE
 async function runTestSuite() {
   console.log("\n╔════════════════════════════════════════════════════════╗");
-  console.log("║   TEST SUITE: FILTRO SEGNALAZIONI (Allineato FE)       ║");
+  console.log("║   TEST SUITE: FILTRO SEGNALAZIONI                      ║");
   console.log("╚════════════════════════════════════════════════════════╝");
 
   caricaVariabiliEnv();
