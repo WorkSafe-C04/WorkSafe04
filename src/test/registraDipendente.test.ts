@@ -57,7 +57,7 @@ async function registrazioneDipendente(prisma: any, params: any,) {
     if (!email.includes('@')) throw new Error("Inserisci un indirizzo email valido");
 
     // Controllo unicità email
-    const existingEmail = await prisma.utente.findUnique({ where: { email } });
+    const existingEmail = await prisma.utente.findFirst({ where: { email } });
     if (existingEmail) throw new Error("Email già registrata");
 
     // Validazione Password (P)
@@ -67,11 +67,11 @@ async function registrazioneDipendente(prisma: any, params: any,) {
     if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) throw new Error("La password deve contenere almeno un carattere speciale");
 
     // Validazione CodiceAzienda (CA)
-    if (!codiceAzienda || codiceAzienda === "") throw new Error("Codice Azienda obbligatorio");
+    if (!codiceAzienda || codiceAzienda === "") throw new Error("Codice azienda obbligatorio");
 
     //Controllo esistenza codice azienda
-    const existingAzienda = await prisma.azienda.findUnique({ where: { codice: codiceAzienda } });
-    if (!existingAzienda) throw new Error("Codice Azienda non esistente");
+    const existingAzienda = await prisma.azienda.findUnique({ where: { codiceAzienda } });
+    if (!existingAzienda) throw new Error("Codice azienda non valido");
 
     // Se passa tutto
     return { success: true, message: "Corretto" };
@@ -123,7 +123,7 @@ async function runTestSuite() {
             id: "TC_RegistrazioneDipendente_3",
             obi: "LN1: Nome assente",
             inputs: {
-                matricola: "A123",
+                matricola: "A1234",
                 nome: "",
                 cognome: "Rossi",
                 dataNascita: "1999-01-20",
@@ -138,7 +138,7 @@ async function runTestSuite() {
             id: "TC_RegistrazioneDipendente_4",
             obi: "C1: Cognome assente",
             inputs: {
-                matricola: "A123",
+                matricola: "A1234",
                 nome: "Mario",
                 cognome: "",
                 dataNascita: "1999-01-20",
@@ -153,7 +153,7 @@ async function runTestSuite() {
             id: "TC_RegistrazioneDipendente_5",
             obi: "DN1: DataNascita assente",
             inputs: {
-                matricola: "A123",
+                matricola: "A1234",
                 nome: "Mario",
                 cognome: "Rossi",
                 dataNascita: "",
@@ -168,7 +168,7 @@ async function runTestSuite() {
             id: "TC_RegistrazioneDipendente_6",
             obi: "DN2: DataNascita non valida",
             inputs: {
-                matricola: "A123",
+                matricola: "A1234",
                 nome: "Mario",
                 cognome: "Rossi",
                 dataNascita: "2027-01-27",
@@ -183,7 +183,7 @@ async function runTestSuite() {
             id: "TC_RegistrazioneDipendente_7",
             obi: "E1: Email assente",
             inputs: {
-                matricola: "A123",
+                matricola: "A1234",
                 nome: "Mario",
                 cognome: "Rossi",
                 dataNascita: "1999-01-20",
@@ -198,7 +198,7 @@ async function runTestSuite() {
             id: "TC_RegistrazioneDipendente_8",
             obi: "E2: Email già registrata",
             inputs: {
-                matricola: "A123",
+                matricola: "A1234",
                 nome: "Mario",
                 cognome: "Rossi",
                 dataNascita: "1999-01-20",
@@ -213,7 +213,7 @@ async function runTestSuite() {
             id: "TC_RegistrazioneDipendente_9",
             obi: "E3: Email non valida",
             inputs: {
-                matricola: "A123",
+                matricola: "A1234",
                 nome: "Mario",
                 cognome: "Rossi",
                 dataNascita: "1999-01-20",
@@ -228,7 +228,7 @@ async function runTestSuite() {
             id: "TC_RegistrazioneDipendente_10",
             obi: "P1: Password assente",
             inputs: {
-                matricola: "A123",
+                matricola: "A1234",
                 nome: "Mario",
                 cognome: "Rossi",
                 dataNascita: "1999-01-20",
@@ -243,7 +243,7 @@ async function runTestSuite() {
             id: "TC_RegistrazioneDipendente_11",
             obi: "P2: Password corta",
             inputs: {
-                matricola: "A123",
+                matricola: "A1234",
                 nome: "Mario",
                 cognome: "Rossi",
                 dataNascita: "1999-01-20",
@@ -258,7 +258,7 @@ async function runTestSuite() {
             id: "TC_RegistrazioneDipendente_12",
             obi: "P2: Password senza lettera maiuscola",
             inputs: {
-                matricola: "A123",
+                matricola: "A1234",
                 nome: "Mario",
                 cognome: "Rossi",
                 dataNascita: "1999-01-20",
@@ -273,7 +273,7 @@ async function runTestSuite() {
             id: "TC_RegistrazioneDipendente_13",
             obi: "P3: Password senza carattere speciale",
             inputs: {
-                matricola: "A123",
+                matricola: "A1234",
                 nome: "Mario",
                 cognome: "Rossi",
                 dataNascita: "1999-01-20",
@@ -288,7 +288,7 @@ async function runTestSuite() {
             id: "TC_RegistrazioneDipendente_14",
             obi: "CA1: CodiceAzienda assente",
             inputs: {
-                matricola: "A123",
+                matricola: "A1234",
                 nome: "Mario",
                 cognome: "Rossi",
                 dataNascita: "1999-01-20",
@@ -303,7 +303,7 @@ async function runTestSuite() {
             id: "TC_RegistrazioneDipendente_15",
             obi: "CA2: CodiceAzienda non valido",
             inputs: {
-                matricola: "A123",
+                matricola: "A1234",
                 nome: "Mario",
                 cognome: "Rossi",
                 dataNascita: "1999-01-20",
@@ -318,7 +318,7 @@ async function runTestSuite() {
             id: "TC_RegistrazioneDipendente_16",
             obi: "CORRETTO: Dati validi",
             inputs: {
-                matricola: "A123",
+                matricola: "A1234",
                 nome: "Mario",
                 cognome: "Rossi",
                 dataNascita: "1999-01-20",
