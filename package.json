@@ -19,7 +19,8 @@
     "test:validaFormazione": "npx tsx src/test/validaFormazione.test.ts",
     "test:registra-azienda": "npx tsx src/test/registraAzienda.test.ts",
     "test:crea-avviso": "npx tsx src/test/creaAvviso.test.ts",
-    "test:registra-datore": "npx tsx src/test/registraDatoreDiLavoro.test.ts"
+    "test:registra-datore": "npx tsx src/test/registraDatoreDiLavoro.test.ts",
+    "test:filtro-risorse": "npx tsx src/test/filtroRisorse.test.ts"
   },
   "dependencies": {
     "@ai-sdk/cerebras": "^1.0.5",
