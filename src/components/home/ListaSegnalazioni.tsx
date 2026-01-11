@@ -48,10 +48,9 @@ export default function ListaSegnalazioni() {
   }, [data]);
 
   const statoOptions = [
-    { label: 'Aperta', value: 'APERTA' },
-    { label: 'In Corso', value: 'IN_CORSO' },
-    { label: 'Risolta', value: 'RISOLTA' },
-    { label: 'Chiusa', value: 'CHIUSA' },
+    { label: 'Aperto', value: 'APERTO' },
+    { label: 'In Lavorazione', value: 'IN_LAVORAZIONE' },
+    { label: 'Completata', value: 'COMPLETATA' },
   ];
 
   const prioritaOptions = [
@@ -83,12 +82,14 @@ export default function ListaSegnalazioni() {
 
       let statoMatch = true;
       if (filterStato) {
-        statoMatch = item.stato === filterStato;
+        const s = (item.stato || '').toUpperCase();
+        const f = filterStato.toUpperCase();
+        statoMatch = s === f || s.replace(/ /g, '_') === f || s.replace(/_/g, ' ') === f;
       }
 
       let prioritaMatch = true;
       if (filterPriorita) {
-        const p = (item as any).priorita || ''; 
+        const p = ((item as any).priorita || '').toUpperCase();
         prioritaMatch = p === filterPriorita;
       }
 
@@ -119,22 +120,27 @@ export default function ListaSegnalazioni() {
   }
 
   const getStatoConfig = (stato?: string) => {
-    switch (stato) {
-      case 'APERTA': return { color: 'red', icon: <ExclamationCircleOutlined />, text: 'Aperta' };
-      case 'IN_CORSO': return { color: 'orange', icon: <ClockCircleOutlined />, text: 'In Corso' };
-      case 'RISOLTA': return { color: 'green', icon: <CheckCircleOutlined />, text: 'Risolta' };
-      case 'CHIUSA': return { color: 'blue', icon: <CheckCircleOutlined />, text: 'Chiusa' };
+    const s = (stato || '').toUpperCase().replace(/ /g, '_');
+    switch (s) {
+      case 'APERTO': return { color: 'red', icon: <ExclamationCircleOutlined />, text: 'Aperto' };
+      case 'IN_LAVORAZIONE': 
+      case 'IN_CORSO':
+        return { color: 'orange', icon: <ClockCircleOutlined />, text: 'In Lavorazione' };
+      case 'COMPLETATA': 
+      case 'RISOLTA':
+      case 'CHIUSA':
+        return { color: 'green', icon: <CheckCircleOutlined />, text: 'Completata' };
       default: return { color: 'default', icon: <FileTextOutlined />, text: stato || 'Sconosciuto' };
     }
   };
 
   const getPrioritaConfig = (priorita?: string) => {
-    const p = priorita || 'N/D';
+    const p = (priorita || 'N/D').toUpperCase();
     switch (p) {
         case 'ALTA': return { color: 'red', text: 'Alta' };
         case 'MEDIA': return { color: 'orange', text: 'Media' };
         case 'BASSA': return { color: 'blue', text: 'Bassa' };
-        default: return { color: 'default', text: p };
+        default: return { color: 'default', text: priorita };
     }
   };
 
@@ -164,8 +170,8 @@ export default function ListaSegnalazioni() {
                 value={filterTitolo}
                 onChange={e => setFilterTitolo(e.target.value)}
                 allowClear
-                maxLength={50} 
-                status={filterTitolo.length === 50 ? 'warning' : ''} 
+                maxLength={50}
+                status={filterTitolo.length === 50 ? 'warning' : ''}
               />
               {filterTitolo.length === 50 && (
                 <div style={{ color: '#faad14', fontSize: '11px', marginTop: '2px' }}>

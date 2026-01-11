@@ -73,8 +73,8 @@ async function filtroSegnalazioni(prisma: any, params: any, sessione: any) {
     }
   }
 
-  // TC_5: Stato
-  const statiValidi = ['APERTA', 'IN_CORSO', 'RISOLTA', 'CHIUSA']; 
+  // TC_5: Stato (AGGIORNATO ALLA REALTA' IMPLEMENTATIVA)
+  const statiValidi = ['APERTA', 'IN_LAVORAZIONE', 'COMPLETATA']; 
   if (stato && !statiValidi.includes(stato)) {
     throw new Error("Valore stato non valido");
   }
@@ -85,7 +85,7 @@ async function filtroSegnalazioni(prisma: any, params: any, sessione: any) {
     throw new Error("Valore priorità non valido");
   }
 
-  // TC_8: 
+  // TC_8: Query
   const whereClause: any = {};
   if (titolo && titolo !== "(Nessun filtro)") whereClause.titolo = { contains: titolo };
   if (stato && stato !== "(Nessun filtro)") whereClause.stato = stato;
