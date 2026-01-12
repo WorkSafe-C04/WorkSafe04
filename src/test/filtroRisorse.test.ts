@@ -33,7 +33,7 @@ function caricaVariabiliEnv() {
     console.error("   Esempio: DATABASE_URL=postgresql://user:password@host:5432/dbname");
     process.exit(1);
   }
-  
+
   // Mostra il DATABASE_URL (nascondendo la password)
   const dbUrl = process.env.DATABASE_URL;
   const urlMasked = dbUrl.replace(/:([^@:]+)@/, ':***@');

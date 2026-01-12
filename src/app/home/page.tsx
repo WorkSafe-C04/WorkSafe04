@@ -7,16 +7,16 @@ import { Role } from "@/model/role";
 import { Tabs } from 'antd';
 import { BellOutlined, WarningOutlined, UserOutlined } from '@ant-design/icons';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 
-export default function HomePage() {
+function HomePageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('1');
   const [isDatoreLavoro, setIsDatoreLavoro] = useState(false);
   const [isResponsabileSicurezza, setIsResponsabileSicurezza] = useState(false);
   const tabsRef = useRef<any>(null);
-  
+
   useEffect(() => {
     // Verifica ruolo utente
     const userStr = localStorage.getItem('user');
@@ -30,7 +30,7 @@ export default function HomePage() {
       }
     }
   }, []);
-  
+
   const baseItems = [
     {
       key: '1',
@@ -53,10 +53,10 @@ export default function HomePage() {
       children: <ListaAvvisi />,
     },
   ];
-  
+
   // Aggiungi il tab Gestione Dipendenti per Datore Di Lavoro e ResponsabileSicurezza
   let items = [...baseItems];
-  
+
   if (isDatoreLavoro) {
     items.push({
       key: '3',

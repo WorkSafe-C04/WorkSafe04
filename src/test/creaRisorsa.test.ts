@@ -21,7 +21,7 @@ function caricaVariabiliEnv() {
                     }
                 });
             }
-        } catch (_) {}
+        } catch (_) { }
     });
 }
 
@@ -98,10 +98,10 @@ async function runTestSuite() {
             id: "TC_RIS_1",
             frame: "TT4, DC1, NR1, SS1", // Robustezza, File Grande, Errore, Sessione OK
             obi: "File > 1GB",
-            inputs: { 
-                nome: "Trapano Heavy", 
-                tipo: "Macchinario", 
-                schedaAllegata: mockFileHuge 
+            inputs: {
+                nome: "Trapano Heavy",
+                tipo: "Macchinario",
+                schedaAllegata: mockFileHuge
             },
             sessione: { isValid: true },
             oracolo: "Errore: File troppo grande (>1GB)",
@@ -111,10 +111,10 @@ async function runTestSuite() {
             id: "TC_RIS_2",
             frame: "TT1, DC4, NR1, SS1", // Funzionale, Dato Mancante, Errore, Sessione OK
             obi: "Nome Mancante",
-            inputs: { 
-                nome: null, 
-                tipo: "Macchinario", 
-                schedaAllegata: null 
+            inputs: {
+                nome: null,
+                tipo: "Macchinario",
+                schedaAllegata: null
             },
             sessione: { isValid: true },
             oracolo: "Errore: Nome è obbligatorio",
@@ -124,10 +124,10 @@ async function runTestSuite() {
             id: "TC_RIS_3",
             frame: "TT1, DC4, NR1, SS1", // Funzionale, Dato Mancante, Errore, Sessione OK
             obi: "Tipo Mancante",
-            inputs: { 
-                nome: "Trapano NoTipo", 
-                tipo: null, 
-                schedaAllegata: null 
+            inputs: {
+                nome: "Trapano NoTipo",
+                tipo: null,
+                schedaAllegata: null
             },
             sessione: { isValid: true },
             oracolo: "Errore: Tipo è obbligatorio",
@@ -137,9 +137,9 @@ async function runTestSuite() {
             id: "TC_RIS_4",
             frame: "TT1, DC5, NR1, SS1", // Funzionale, Dati Validi, Successo, Sessione OK
             obi: "Inserimento Corretto",
-            inputs: { 
-                nome: `TRAPANO_OK_${Date.now()}`, 
-                tipo: "Macchinario", 
+            inputs: {
+                nome: `TRAPANO_OK_${Date.now()}`,
+                tipo: "Macchinario",
                 descrizione: "Trapano a percussione test",
                 schedaAllegata: mockFileSmall
             },
@@ -156,7 +156,7 @@ async function runTestSuite() {
         process.stdout.write(`🔹 [${tc.id}] ... `);
         try {
             const result = await creaRisorsa(prisma, tc.inputs, tc.sessione);
-            
+
             if (result.success && result.id) {
                 createdIds.push(result.id);
             }
@@ -182,7 +182,7 @@ async function runTestSuite() {
 
     // Pulizia
     for (const id of createdIds) {
-        try { await prisma.risorsa.delete({ where: { id } }); } catch (e) {}
+        try { await prisma.risorsa.delete({ where: { id } }); } catch (e) { }
     }
 
     await prisma.$disconnect();
