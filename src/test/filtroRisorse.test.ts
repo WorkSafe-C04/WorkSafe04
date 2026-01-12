@@ -15,16 +15,29 @@ function caricaVariabiliEnv() {
       const txt = fs.readFileSync(p, "utf8");
       txt.split("\n").forEach(l => {
         const [k, ...v] = l.split("=");
-        if (k && v.length) process.env[k.trim()] ??= v.join("=").trim();
+        if (k && v.length) {
+          // Rimuove virgolette e spazi
+          let value = v.join("=").trim();
+          value = value.replace(/^["']|["']$/g, '');
+          process.env[k.trim()] ??= value;
+        }
       });
       caricato = true;
+      console.log(`✅ Caricato file ${file}`);
     }
   }
 
-  if (!caricato && !process.env.DATABASE_URL) {
+  if (!process.env.DATABASE_URL) {
     console.error("❌ DATABASE_URL non trovato");
+    console.error("💡 Imposta DATABASE_URL come variabile d'ambiente o crea un file .env");
+    console.error("   Esempio: DATABASE_URL=postgresql://user:password@host:5432/dbname");
     process.exit(1);
   }
+  
+  // Mostra il DATABASE_URL (nascondendo la password)
+  const dbUrl = process.env.DATABASE_URL;
+  const urlMasked = dbUrl.replace(/:([^@:]+)@/, ':***@');
+  console.log(`✅ DATABASE_URL configurato: ${urlMasked}`);
 }
 
 /* =================== BUSINESS =================== */
@@ -56,7 +69,8 @@ async function runTestSuite() {
   caricaVariabiliEnv();
 
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  const prisma = new PrismaClient({ adapter: new PrismaPg(pool) } as any);
+  const adapter = new PrismaPg(pool);
+  const prisma = new PrismaClient({ adapter } as any);
 
   let id: any;
 
