@@ -122,3 +122,11 @@ function HomePageContent() {
     </>
   );
 }
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={<div>Caricamento...</div>}>
+      <HomePageContent />
+    </Suspense>
+  );
+}
